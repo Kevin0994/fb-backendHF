@@ -13,6 +13,7 @@ admin.initializeApp({
 app.use(cors());
 
 app.use(require('./routes/cosecha.routes'))
+app.use(require('./routes/usuario.routes'))
 
 exports.app = functions.https.onRequest(app);
 
