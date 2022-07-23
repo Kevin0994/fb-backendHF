@@ -15,10 +15,11 @@ router.get('/cosecha/documents', async (req, res) => {
         const response = docs.map(doc => ({
             id: doc.id,
             nombre: doc.data().nombre,
-            codProducto: doc.data().codProducto,
-            fecha_In: doc.data().fecha_In,
+            codigo: doc.data().codigo,
+            fecha: doc.data().fecha,
             peso_h: doc.data().peso_h,
             peso_stock: doc.data().peso_stock,
+            lote: doc.data().lote,
             responsable: doc.data().responsable,
         }))
 
@@ -47,11 +48,12 @@ router.post('/cosecha/post', async (req, res) => {
     try {
         await db.collection('cosecha').doc()
         .create({
-            nombre: req.body.name,
-            codProducto: req.body.codProducto,
-            fecha_In: req.body.fecha_In,
+            nombre: req.body.nombre,
+            codigo: req.body.codigo,
+            fecha: req.body.fecha,
             peso_h: req.body.peso_h,
             peso_stock: req.body.peso_stock,
+            lote: req.body.lote,
             responsable: req.body.responsable,
         });
         return res.status(204).json();
@@ -64,11 +66,12 @@ router.put('/cosecha/documents/:id', async (req, res) => {
     try {
         const doc = db.collection('cosecha').doc(req.params.id);
         await doc.update({
-            nombre: req.body.name,
-            codProducto: req.body.codProducto,
-            fecha_In: req.body.fecha_In,
+            nombre: req.body.nombre,
+            codigo: req.body.codigo,
+            fecha: req.body.fecha,
             peso_h: req.body.peso_h,
             peso_stock: req.body.peso_stock,
+            lote: req.body.lote,
             responsable: req.body.responsable,
         })
         return res.status(200).json();
