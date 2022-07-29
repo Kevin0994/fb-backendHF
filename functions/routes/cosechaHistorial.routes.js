@@ -6,9 +6,9 @@ const admin = require('firebase-admin')
 const db = admin.firestore()
 
 //get de todos los documentos
-router.get('/cosecha/documents', async (req, res) => {
+router.get('/cosechaHistorial/documents', async (req, res) => {
     try {
-        const query = db.collection('cosecha');
+        const query = db.collection('cosechaHistorial');
         const querySnapshot = await query.get();
         const docs = querySnapshot.docs;
 
@@ -29,12 +29,12 @@ router.get('/cosecha/documents', async (req, res) => {
 });
 
 //busqueda por id
-router.get('/cosecha/documents/:id', (req, res) => {
+router.get('/cosechaHistorial/documents/:id', (req, res) => {
     (async () => {
         try {
-            const doc = db.collection('cosecha').doc(req.params.id);
-            const cosecha = await doc.get();
-            const response = cosecha.data();
+            const doc = db.collection('cosechaHistorial').doc(req.params.id);
+            const cosechaHistorial = await doc.get();
+            const response = cosechaHistorial.data();
             return res.status(200).json(response);
         } catch (error) {
             return res.status(500).send(error);
@@ -43,9 +43,9 @@ router.get('/cosecha/documents/:id', (req, res) => {
 });
 
 
-router.post('/cosecha/post', async (req, res) => {
+router.post('/cosechaHistorial/post', async (req, res) => {
     try {
-        await db.collection('cosecha').doc()
+        await db.collection('cosechaHistorial').doc()
         .create({
             nombre: req.body.nombre,
             codigo: req.body.codigo,
@@ -60,9 +60,9 @@ router.post('/cosecha/post', async (req, res) => {
     }
 });
 
-router.put('/cosecha/documents/:id', async (req, res) => {
+router.put('/cosechaHistorial/documents/:id', async (req, res) => {
     try {
-        const doc = db.collection('cosecha').doc(req.params.id);
+        const doc = db.collection('cosechaHistorial').doc(req.params.id);
         await doc.update({
             nombre: req.body.nombre,
             codigo: req.body.codigo,
@@ -77,9 +77,9 @@ router.put('/cosecha/documents/:id', async (req, res) => {
     }
 });
 
-router.delete('/cosecha/documents/:id', async (req, res) => {
+router.delete('/cosechaHistorial/documents/:id', async (req, res) => {
     try {
-        const doc = db.collection('cosecha').doc(req.params.id);
+        const doc = db.collection('cosechaHistorial').doc(req.params.id);
         await doc.delete()
         return res.status(200).json();
     } catch (error) {
