@@ -18,6 +18,7 @@ router.get('/usuario/:email/:password', (req, res) => {
                 id: doc.id,
                 UserName: doc.data().apellidos,
                 email: doc.data().email,
+                rol: doc.data().rol,
             }))
             return res.status(200).json(response);
         } catch (error) {
@@ -33,10 +34,7 @@ router.get('/usuario/documents/rol/:id', (req, res) => {
             const doc = db.collection("usuario").doc(req.params.id)
             const usuario = await doc.get();
             const response = usuario.data();
-            if(response.rol == 'Administrador'){
-                return res.status(200).json(true);
-            }
-            return res.status(200).json(false);
+            return res.status(200).json(response.rol);
 
         } catch (error) {
             return res.status(500).send(error);
