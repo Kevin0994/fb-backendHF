@@ -41,7 +41,7 @@ router.get('/cosechas/documents/:id', (req, res) => {
     })();
 });
 
-//buscar por nombre y lote 
+//buscar por nombre y lote
 router.get('/cosechaStock/:nombre/:lote', (req, res) => {
     (async () => {
         try {
@@ -54,10 +54,9 @@ router.get('/cosechaStock/:nombre/:lote', (req, res) => {
                 id: doc.id,
                 stock: doc.data().stock
             }))
-        
+
             return res.status(200).json(response);
-            
-            
+
         } catch (error) {
             return res.status(500).send(error);
         }

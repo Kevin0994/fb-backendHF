@@ -16,6 +16,7 @@ app.use(require('./routes/cosechaHistorial.routes'))
 app.use(require('./routes/listaCosechas.routes'))
 app.use(require('./routes/cosechas.routes'))
 app.use(require('./routes/usuario.routes'))
+app.use(require('./routes/categoriaProductos.routes'))
 
 exports.app = functions.https.onRequest(app);
 
