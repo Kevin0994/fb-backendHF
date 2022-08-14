@@ -14,6 +14,7 @@ router.get('/listaCosechas/documents', async (req, res) => {
 
         const response = docs.map(doc => ({
             nombre: doc.data().nombre,
+            codigo: doc.data().codigo,
         }))
         
         return res.status(200).json(response);
