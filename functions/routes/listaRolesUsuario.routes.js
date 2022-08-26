@@ -5,16 +5,15 @@ const admin = require('firebase-admin')
 
 const db = admin.firestore()
 
-router.get('/categoriaProducto/documents', async (req, res) => {
+router.get('/listaRoles/documents', async (req, res) => {
     try {
-        const query = db.collection('categoriaProductoSemifinal');
+
+        const query = db.collection('listaRolesUsuario');
         const querySnapshot = await query.get();
         const docs = querySnapshot.docs;
 
         const response = docs.map(doc => ({
             nombre: doc.data().nombre,
-            img: doc.data().img,
-            productos: doc.data().productos,
         }))
 
         return res.status(200).json(response);

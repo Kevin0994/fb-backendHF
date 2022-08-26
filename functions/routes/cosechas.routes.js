@@ -18,7 +18,7 @@ router.get('/cosechas/documents', async (req, res) => {
             id: doc.id,
             nombre: doc.data().nombre,
             codigo: doc.data().codigo,
-            stock: doc.data().stock,
+            stock: doc.data().stock / 1000 ,
             lote: doc.data().lote,
         }))
 
@@ -43,9 +43,9 @@ router.get('/cosechasHistorial/documents', async (req, res) => {
                     nombre: cosecha.data().nombre,
                     codigo: cosecha.data().codigo,
                     lote: cosecha.data().lote,
-                    stock: cosecha.data().stock,
+                    stock: cosecha.data().stock / 1000,
                     idHistorial: doc.id,
-                    ingreso: doc.ingreso,
+                    ingreso: doc.ingreso /1000,
                     fecha: doc.fecha,
                     responsable: doc.responsable,
                 };
@@ -102,8 +102,89 @@ router.get('/cosechaStock/:nombre/:lote', (req, res) => {
             const docs = cosecha.docs;
             const response = docs.map(doc => ({
                 id: doc.id,
-                stock: doc.data().stock
+                stock: doc.data().stock / 1000
             }))
+
+            return res.status(200).json(response);
+
+        } catch (error) {
+            return res.status(500).send(error);
+        }
+    })();
+});
+
+router.put('/stock/:nombre', (req, res) => {
+    (async () => {
+        try {
+            const nombre = req.params.nombre;
+            let ingreso = req.body.ingreso;
+            let total = 0;
+            const resultado= Array();
+            const response= Array();
+            const doc = db.collection("cosechas").where("nombre", "==", nombre);
+            const cosecha = await doc.get();
+            const docs = cosecha.docs;
+            docs.map(function(doc){
+                if(doc.data().stock != 0){
+                    document={
+                        id: doc.id,
+                        lote: doc.data().lote,
+                        stock: doc.data().stock,
+                    };
+                    total += doc.data().stock
+                    resultado.push(document);
+                    return document;
+                }
+            });
+
+            resultado.sort(function(a, b){
+                if(a.lote < b.lote){
+                    return 1
+                } else if (a.lote > b.lote) {
+                    return -1
+                } else {
+                    return 0
+                }
+            })
+
+            resultado.every(function(doc){
+
+                if(ingreso <= total){
+                    if(doc.stock >= ingreso){
+                        document={
+                            lote: doc.lote,
+                            salida: ingreso,
+                        };
+                        response.push(document);
+                        db.collection('cosechas').doc(doc.id).update({
+                            stock: doc.stock - ingreso,
+                        })
+                        return false;
+                    }else{
+                        document={
+                            lote: doc.lote,
+                            salida: doc.stock,
+                        };
+
+                        db.collection('cosechas').doc(doc.id).update({
+                            stock: 0,
+                        })
+                        ingreso -= doc.stock
+                        response.push(document);
+                        return true;
+                    }
+                }else{
+                    document = {
+                        messege : 'stock insuficiente',
+                        stock : ingreso - total
+                    }
+
+                    response.push(document);
+
+                    return false;
+                }
+
+            })
 
             return res.status(200).json(response);
 

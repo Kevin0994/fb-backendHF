@@ -14,9 +14,11 @@ app.use(cors());
 
 
 app.use(require('./routes/listaCosechas.routes'))
+app.use(require('./routes/listaRolesUsuario.routes'))
 app.use(require('./routes/cosechas.routes'))
 app.use(require('./routes/usuario.routes'))
 app.use(require('./routes/categoriaProductos.routes'))
+app.use(require('./routes/productosSemifinales.routes'))
 
 exports.app = functions.https.onRequest(app);
 

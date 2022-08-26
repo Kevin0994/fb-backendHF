@@ -23,5 +23,18 @@ router.get('/listaCosechas/documents', async (req, res) => {
     }
 });
 
+router.get('/cosechas/documents/:id', (req, res) => {
+    (async () => {
+        try {
+            const doc = db.collection('listaCosechas').doc(req.params.id);
+            const cosechaHistorial = await doc.get();
+            const response = cosechaHistorial.data();
+            return res.status(200).json(response);
+        } catch (error) {
+            return res.status(500).send(error);
+        }
+    })();
+});
+
 module.exports = router
 
