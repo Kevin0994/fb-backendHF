@@ -119,6 +119,7 @@ router.put('/stock/:nombre', (req, res) => {
             const nombre = req.params.nombre;
             let ingreso = req.body.ingreso;
             let total = 0;
+            let status = 500;
             const resultado= Array();
             const response= Array();
             const doc = db.collection("cosechas").where("nombre", "==", nombre);
@@ -137,56 +138,68 @@ router.put('/stock/:nombre', (req, res) => {
                 }
             });
 
-            resultado.sort(function(a, b){
-                if(a.lote < b.lote){
-                    return 1
-                } else if (a.lote > b.lote) {
-                    return -1
-                } else {
-                    return 0
-                }
-            })
-
-            resultado.every(function(doc){
-
-                if(ingreso <= total){
-                    if(doc.stock >= ingreso){
-                        document={
-                            lote: doc.lote,
-                            salida: ingreso,
-                        };
-                        response.push(document);
-                        db.collection('cosechas').doc(doc.id).update({
-                            stock: doc.stock - ingreso,
-                        })
-                        return false;
+            if(resultado.length != 0){
+                resultado.sort(function(a, b){
+                    if(a.lote < b.lote){
+                        return 1
+                    } else if (a.lote > b.lote) {
+                        return -1
+                    } else {
+                        return 0
+                    }
+                })
+    
+                resultado.every(function(doc){
+    
+                    if(ingreso <= total){
+                        if(doc.stock >= ingreso){
+                            document={
+                                lote: doc.lote,
+                                salida: ingreso,
+                            };
+                            response.push(document);
+                            db.collection('cosechas').doc(doc.id).update({
+                                stock: doc.stock - ingreso,
+                            })
+                            status = 200;
+                            return false;
+                        }else{
+                            document={
+                                lote: doc.lote,
+                                salida: doc.stock,
+                            };
+    
+                            db.collection('cosechas').doc(doc.id).update({
+                                stock: 0,
+                            })
+                            ingreso -= doc.stock
+                            response.push(document);
+                            status = 200;
+                            return true;
+                        }
                     }else{
-                        document={
-                            lote: doc.lote,
-                            salida: doc.stock,
-                        };
-
-                        db.collection('cosechas').doc(doc.id).update({
-                            stock: 0,
-                        })
-                        ingreso -= doc.stock
+                        document = {
+                            messege : 'stock insuficiente',
+                            stock : ingreso - total
+                        }
+    
                         response.push(document);
-                        return true;
+                        status = 500;
+                        return false;
                     }
-                }else{
-                    document = {
-                        messege : 'stock insuficiente',
-                        stock : ingreso - total
-                    }
-
-                    response.push(document);
-
-                    return false;
+    
+                })
+            }else{
+                document = {
+                    messege : 'stock insuficiente',
+                    stock : ingreso
                 }
 
-            })
+                response.push(document);
+                status = 500;
+            }
 
-            return res.status(200).json(response);
+            return res.status(status).json(response);
 
         } catch (error) {
             return res.status(500).send(error);
