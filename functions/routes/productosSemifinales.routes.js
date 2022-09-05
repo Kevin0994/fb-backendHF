@@ -25,14 +25,21 @@ router.get('/productosSemi/documents', async (req, res) => {
             peso_mp: producto.data().peso_mp, //peso materia prima
             n_proceso: producto.data().n_proceso, //numero de proceso
             fechaEntrada: producto.data().fechaEntrada,
-            //fechaSalida: producto.data().fechaSalida,
-            //n_fundas: producto.data().n_fundas, //numero de fundas
-            //peso_ps: producto.data().peso_ps, //peso producto semifinal
-            //conversion: producto.data().conversion,
             responsable: producto.data().responsable,
             estado: producto.data().estado,
         }))
 
+        if(response.length != 0){
+            response.sort(function(a, b){
+                if(a.n_proceso > b.n_proceso){
+                    return 1
+                } else if (a.n_proceso < b.n_proceso) {
+                    return -1
+                } else {
+                    return 0
+                }
+            })
+        }
         return res.status(200).json(response);
     } catch (error) {
         return res.status(500).json();
@@ -63,10 +70,6 @@ router.post('/productoSemi/post', async (req, res) => {
             peso_mp: req.body.peso_mp, //peso materia prima
             n_proceso: proceso, //numero de proceso
             fechaEntrada: req.body.fechaEntrada,
-            //fechaSalida: req.body.fechaSalida,
-            //n_fundas: req.body.n_fundas, //numero de fundas
-            //peso_ps: req.body.peso_ps, //peso producto semifinal
-            //conversion: req.body.conversion,
             responsable: req.body.responsable,
             estado: req.body.estado,
         });
@@ -77,19 +80,19 @@ router.post('/productoSemi/post', async (req, res) => {
 });
 
 
-router.get('/productosSemi/proceso', async (req, res) => {
+router.put('/productosSemi/put/:id', async (req, res) => {
     try {
-
-        const doc = db.collection('productoSemifinal').orderBy('n_proceso', 'desc');
-        const snapshot = await doc.get();
-        const docs = snapshot.docs;
-        const response = docs.map(doc => ({
-            procesos: doc.data().n_proceso,
-        }))
-
-        return res.status(200).json(response);
+        const doc = db.collection('productoSemifinal').doc(req.params.id);
+        await doc.update({
+            fechaSalida: req.body.fechaSalida,
+            n_fundas: req.body.n_fundas, //numero de fundas
+            peso_ps: req.body.peso_ps, //peso producto semifinal
+            conversion: req.body.conversion,
+            estado: 'terminado'
+        })
+        return res.status(200).json();
     } catch (error) {
-        return res.status(500).json();
+        return res.status(500).send(error);
     }
 });
 
