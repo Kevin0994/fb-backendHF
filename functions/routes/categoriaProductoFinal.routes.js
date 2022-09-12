@@ -15,7 +15,8 @@ router.get('/categoriaProductoFinal/documents', async (req, res) => {
             id: doc.id,
             nombre: doc.data().nombre,
             img: doc.data().img,
-            productos: doc.data().productos.length,
+            nProductos: doc.data().productos.length,
+            productos: doc.data().productos,
         }))
 
         return res.status(200).json(response);

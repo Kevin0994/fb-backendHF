@@ -20,6 +20,7 @@ app.use(require('./routes/usuario.routes'))
 app.use(require('./routes/categoriaProductoSemifinal.routes'))
 app.use(require('./routes/categoriaProductoFinal.routes'))
 app.use(require('./routes/productosSemifinales.routes'))
+app.use(require('./routes/alimentos.routes'))
 
 
 exports.app = functions.https.onRequest(app);

@@ -255,7 +255,7 @@ router.post('/cosechaHistorial/delete/:id', async (req, res) => {
             stock: stock,
             historial: FieldValue.arrayRemove({
                 id: idHis,
-                ingreso: ingreso,
+                ingreso: ingreso*1000,
                 fecha: fecha,
                 responsable: responsable
             })

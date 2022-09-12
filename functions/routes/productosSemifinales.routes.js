@@ -56,21 +56,21 @@ router.get('/inventarioProSemi/documents', async (req, res) => {
         const productos= Array();
 
         const response = docs.map(producto => ({
-            lote_mp_st: producto.data().lote_mp.map(function(doc) { //lote materia prima
+            lotempst: producto.data().lote_mp.map(function(doc) { //lote materia prima
                 cadena = doc.lote.toString()+ ' ';
                 return cadena;
             }),
             lote_mp : producto.data().lote_mp,
             id: producto.id,
-            nombre_mp:producto.data().nombre_mp, //nombre matria prima
-            nombre_ps: producto.data().nombre_ps, //nombre producto semifinal
-            lote_ps: producto.data().lote_ps, //lote producto semifinal
-            peso_mp: producto.data().peso_mp, //peso materia prima
-            n_proceso: producto.data().n_proceso, //numero de proceso
+            nombremp:producto.data().nombre_mp, //nombre matria prima
+            nombreps: producto.data().nombre_ps, //nombre producto semifinal
+            loteps: producto.data().lote_ps, //lote producto semifinal
+            pesomp: producto.data().peso_mp, //peso materia prima
+            nproceso: producto.data().n_proceso, //numero de proceso
             fechaEntrada: producto.data().fechaEntrada,
             fechaSalida: producto.data().fechaSalida,
-            n_fundas: producto.data().n_fundas, //numero de fundas
-            peso_ps: producto.data().peso_ps, //peso producto semifinal
+            nfundas: producto.data().n_fundas, //numero de fundas
+            pesops: producto.data().peso_ps, //peso producto semifinal
             conversion: producto.data().conversion,
             responsable: producto.data().responsable,
             estado: producto.data().estado,
@@ -135,7 +135,7 @@ router.put('/productosSemi/put/:id', async (req, res) => {
             n_fundas: req.body.n_fundas, //numero de fundas
             peso_ps: req.body.peso_ps, //peso producto semifinal
             conversion: req.body.conversion,
-            estado: 'terminado'
+            estado: 'Terminado'
         })
         return res.status(200).json();
     } catch (error) {
