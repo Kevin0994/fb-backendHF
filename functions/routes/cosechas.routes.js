@@ -22,6 +22,16 @@ router.get('/cosechas/documents', async (req, res) => {
             lote: doc.data().lote,
         }))
 
+        response.sort(function(a, b){ //Ordena el array de manera Descendente
+            if(a.lote < b.lote){
+                return 1
+            } else if (a.lote > b.lote) {
+                return -1
+            } else {
+                return 0
+            }
+        })
+
         return res.status(200).json(response);
     } catch (error) {
         return res.status(500).json();
@@ -62,56 +72,79 @@ router.get('/cosechasHistorial/documents', async (req, res) => {
     }
 });
 
-//busqueda por id
-router.get('/cosechas/documents/:id', (req, res) => {
-    (async () => {
-        try {
-            const doc = db.collection('cosechas').doc(req.params.id);
-            const cosechaHistorial = await doc.get();
-            const response = cosechaHistorial.data();
-            return res.status(200).json(response);
-        } catch (error) {
-            return res.status(500).send(error);
+
+//Ingreso de cosechas completo
+router.post('/cosechas/post/:nombre/:lote', async (req, res) => {
+    try {
+
+        const { stockN, nombreN, codigo, loteN, historial } = req.body;
+
+        const nombre = req.params.nombre;
+        const lote = req.params.lote;
+        var idArrays;
+        let status;
+        const doc = db.collection("cosechas").where("nombre", "==", nombre).where("lote", "==", parseInt(lote)); //Busca las cosecha por nombre y lote 
+        const cosecha = await doc.get();
+        const docs = cosecha.docs;
+        const resultado = docs.map(doc => ({ //Guarda el resultado de la busqueda en un variable
+            id: doc.id,
+            stock: doc.data().stock,
+            history: doc.data().historial,
+        }));
+
+        if(resultado.length == 0){ //Si no se encontro ninguna cosecha se ingresa una cosecha nueva
+            await db.collection('cosechas').doc()
+            .create({
+                nombre: nombreN,
+                codigo: codigo,
+                stock: stockN,
+                lote: loteN,
+                historial: historial,
+            });
+            status = true;
+        }else{ //actualiza la cosecha existente
+            resultado[0].history.map(function(doc){
+                idArrays={
+                    id: doc.id
+                }
+            })
+            await db.collection("cosechas").doc(resultado[0].id).update({
+                stock: resultado[0].stock + historial[0].ingreso,
+                historial: FieldValue.arrayUnion({
+                    id: Math.max(idArrays.id)+1,
+                    ingreso: historial[0].ingreso,
+                    fecha: historial[0].fecha,
+                    responsable: historial[0].responsable
+                })
+            })
+            status = false;
         }
-    })();
+        return res.status(200).json(status);
+    } catch (error) {
+        return res.status(500).send(error);
+    }
 });
 
-//busqueda de historial cosecha por id
-/* router.get('/Historial/documents/:idCo/:idHis', (req, res) => {
-    (async () => {
-        try {
-            const doc = db.collection('cosechas').doc(req.params.idCo);
-            console.log(doc); 
-            const cosechaHistorial = await db.collection('cosechas').doc(req.params.idCo)
-            const response = cosechaHistorial.data();
-            return res.status(200).json(response);
-        } catch (error) {
-            return res.status(500).send(error);
-        }
-    })();
-});
- */
-//buscar por nombre y lote
-router.get('/cosechaStock/:nombre/:lote', (req, res) => {
-    (async () => {
-        try {
-            const nombre = req.params.nombre;
-            const lote = req.params.lote;
-            const doc = db.collection("cosechas").where("nombre", "==", nombre).where("lote", "==", parseInt(lote));
-            const cosecha = await doc.get();
-            const docs = cosecha.docs;
-            const response = docs.map(doc => ({
-                id: doc.id,
-                stock: doc.data().stock / 1000
-            }))
+//Ingreso de nuevas Historial de cosechas
+/* router.post('/cosechaHistorial/post/:id', async (req, res) => {
+    try {
+        const { stock, idHis, ingreso, fecha, responsable } = req.body;
 
-            return res.status(200).json(response);
+        const response = await db.collection("cosechas").doc(req.params.id).update({
+            stock: stock,
+            historial: FieldValue.arrayUnion({
+                id: idHis,
+                ingreso: ingreso,
+                fecha: fecha,
+                responsable: responsable
+            })
+        })
+        return res.status(200).json(response);
+    } catch (error) {
+        return res.status(500).send(error);
+    }
+}); */
 
-        } catch (error) {
-            return res.status(500).send(error);
-        }
-    })();
-});
 
 router.put('/stock/:nombre', (req, res) => {
     (async () => {
@@ -207,43 +240,6 @@ router.put('/stock/:nombre', (req, res) => {
     })();
 });
 
-
-//Ingreso de cosechas completo
-router.post('/cosechas/post', async (req, res) => {
-    try {
-        await db.collection('cosechas').doc()
-        .create({
-            nombre: req.body.nombre,
-            codigo: req.body.codigo,
-            stock: req.body.stock,
-            lote: req.body.lote,
-            historial: req.body.historial,
-        });
-        return res.status(204).json('Insertado');
-    } catch (error) {
-        return res.status(500).send(error);
-    }
-});
-
-//Ingreso de nuevas Historial de cosechas
-router.post('/cosechaHistorial/post/:id', async (req, res) => {
-    try {
-        const { stock, idHis, ingreso, fecha, responsable } = req.body;
-
-        const response = await db.collection("cosechas").doc(req.params.id).update({
-            stock: stock,
-            historial: FieldValue.arrayUnion({
-                id: idHis,
-                ingreso: ingreso,
-                fecha: fecha,
-                responsable: responsable
-            })
-        })
-        return res.status(200).json(response);
-    } catch (error) {
-        return res.status(500).send(error);
-    }
-});
 
 
 //Eliminar Historial
