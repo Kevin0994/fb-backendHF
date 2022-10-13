@@ -117,15 +117,43 @@ module.exports = router
 //Agregar Productos
 router.post('/productoSemi/post/', async (req, res) => {
     try {
-        const response = await db.collection("categoriaProductoSemifinal").doc(req.body.categoria).update({
-            productos: FieldValue.arrayUnion({
-                codigo: req.body.codigo,
-                img: req.body.img,
-                materiaPrima: db.doc('listaCosechas/'+req.body.materiaPrima),
-                nombre: req.body.nombre
+        let status = 200;
+        let response;
+        const query = await db.collection("categoriaProductoSemifinal")
+        const querySnapshot = await query.get();
+        const docs = querySnapshot.docs;
+        const producto= Array();
+        docs.map(categoria => ({
+            producto: categoria.data().productos.map(function(doc) {
+                document={
+                    codigo: doc.codigo,
+                    nombre: doc.nombre,
+                };
+                producto.push(document);
+                return document;
             })
-        })
-        return res.status(200).json(response);
+        }))
+        const filtro = producto.filter(function(doc) {
+            if(doc.codigo === req.body.codigo || doc.nombre === req.body.nombre){
+                return doc
+            }else{
+                return false
+            }
+        });
+        if(filtro == false){
+            response = await db.collection("categoriaProductoSemifinal").doc(req.body.categoria).update({
+                productos: FieldValue.arrayUnion({
+                    codigo: req.body.codigo,
+                    img: req.body.img,
+                    materiaPrima: db.doc('listaCosechas/'+req.body.materiaPrima),
+                    nombre: req.body.nombre
+                })
+            })
+        }else{
+            status = 500;
+            response = 'Error al insertar, ya hay un producto con el mismo codigo o nombre';
+        }
+        return res.status(status).json(response);
     } catch (error) {
         return res.status(500).send(error);
     }
