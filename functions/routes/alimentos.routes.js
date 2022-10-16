@@ -24,6 +24,19 @@ router.get('/alimentos/documents', async (req, res) => {
     }
 });
 
+router.get('/cosechas/documents/:id', (req, res) => {
+    (async () => {
+        try {
+            const doc = db.collection('listaCosechas').doc(req.params.id);
+            const cosechaHistorial = await doc.get();
+            const response = cosechaHistorial.data();
+            return res.status(200).json(response);
+        } catch (error) {
+            return res.status(500).send(error);
+        }
+    })();
+});
+
 router.post('/alimentos/post', async (req, res) => {
     try {
         await db.collection('listaCosechas').doc()

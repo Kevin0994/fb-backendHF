@@ -1,3 +1,6 @@
+const functionsCategoria = require('../methods/metodosCategoria')
+const functionsCrud = require('../methods/metodosCrud')
+
 const { Router } = require('express')
 const router = Router();
 
@@ -5,71 +8,70 @@ const admin = require('firebase-admin')
 
 const db = admin.firestore()
 
+//obtener todas las categorias de los productos finales
 router.get('/categoriaProductoFinal/documents', async (req, res) => {
     try {
-        const query = db.collection('categoriaProductoFinal');
-        const querySnapshot = await query.get();
-        const docs = querySnapshot.docs;
 
-        const response = docs.map(doc => ({
-            id: doc.id,
-            nombre: doc.data().nombre,
-            img: doc.data().img,
-            nProductos: doc.data().productos.length,
-            productos: doc.data().productos,
-        }))
+        let data = await functionsCategoria.obtenerCategorias('categoriaProductoFinal');
+        return res.status(200).json(data);
 
-        return res.status(200).json(response);
     } catch (error) {
         return res.status(500).json();
     }
 });
 
+//insertar categoria de productos finales
 router.post('/categoriaProductoFinal/post', async (req, res) => {
     try {
-        await db.collection('categoriaProductoFinal').doc()
-        .create({
-            nombre:req.body.nombre,
-            img:req.body.img,
-            productos: Array(),
-        });
-        return res.status(204).json();
+        const { id, nombre, img } = req.body;
+        const categoria = {
+            nombre:nombre,
+            img:img,
+        }
+        await functionsCrud.insertarDocumentoId('categoriaProductoFinal',id,categoria);
+        const status = true;
+        return res.status(200).json(status);
     } catch (error) {
         return res.status(500).send(error);
     }
 });
 
+//actualizar categoria de productos finales
 router.put('/categoriaProductoFinal/put/:id', async (req, res) => {
     try {
-        const doc = db.collection('categoriaProductoFinal').doc(req.params.id);
-        await doc.update({
-            nombre:req.body.nombre,
-            img:req.body.img,
-        })
-        return res.status(200).json();
+        const idOld = req.params.id;
+        const { id, nombre, img } = req.body;
+        const categoria = {
+            nombre:nombre,
+            img:img,
+        }
+        await functionsCategoria.editarCategoria('categoriaProductoFinal',idOld,id,categoria);
+        const status = false;
+
+        return res.status(200).json(status);
     } catch (error) {
         return res.status(500).send(error);
     }
 });
 
+//eliminar categoria de productos finales
 router.delete('/categoriaProductoFinal/delete/:id', async (req, res) => {
     try {
-        let messege = 'Ok';
-        let status = 200;
-        const doc = db.collection('categoriaProductoFinal').doc(req.params.id);
-        const categoria = await doc.get();
-        if(categoria.data().productos.length == 0){
-            await doc.delete()
-        }else{
-            messege = 'No se puede eliminar la categoria porque hay productos asociados a ella'
-            status = 400;
-        }
-        return res.status(status).json(messege);
+
+        let response = await functionsCategoria.deleteCategoria('categoriaProductoFinal',req.params.id);
+        return res.status(response.status).json(response.messege);
+
     } catch (error) {
         return res.status(500).send(error);
     }
 });
 
+
+// ======Productos Finales========
+
+
+
+//Obtener todos los productos semifinales asociados a sus categorias
 router.get('/productoFinal/documents', async (req, res) => {
     const query = db.collection('categoriaProductoFinal');
     const querySnapshot = await query.get();

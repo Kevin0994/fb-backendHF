@@ -5,7 +5,7 @@ const admin = require('firebase-admin')
 const FieldValue = admin.firestore.FieldValue;
 const Timestamp = admin.firestore.Timestamp;
 
-const db = admin.firestore()
+const db = admin.firestore();
 
 
 //get de todos los documentos
@@ -74,6 +74,7 @@ router.get('/cosechasHistorial/documents', async (req, res) => {
         return res.status(500).json();
     }
 });
+
 
 //Ingreso de cosechas completo
 router.post('/cosechas/post/:nombre/:lote', async (req, res) => {
@@ -150,7 +151,7 @@ router.post('/cosechas/post/:nombre/:lote', async (req, res) => {
 
             return res.status(200).json(status);
         }
-        
+
     } catch (error) {
         return res.status(500).send(error);
     }
@@ -298,9 +299,9 @@ router.put('/stock/:nombre', (req, res) => {
                         return 0
                     }
                 })
-    
+
                 resultado.every(function(doc){
-    
+
                     if(ingreso <= total){
                         if(doc.stock >= ingreso){
                             document={
@@ -318,7 +319,7 @@ router.put('/stock/:nombre', (req, res) => {
                                 lote: doc.lote,
                                 salida: doc.stock,
                             };
-    
+
                             db.collection('cosechas').doc(doc.id).update({
                                 stock: 0,
                             })
@@ -332,12 +333,12 @@ router.put('/stock/:nombre', (req, res) => {
                             messege : 'stock insuficiente',
                             stock : ingreso - total
                         }
-    
+
                         response.push(document);
                         status = 500;
                         return false;
                     }
-    
+
                 })
             }else{
                 document = {

@@ -1,27 +1,20 @@
+
+const functionsCategoria = require('../methods/metodosCategoria')
+const functionsCrud = require('../methods/metodosCrud')
+
 const { Router } = require('express')
 const router = Router();
 
 const admin = require('firebase-admin')
 const FieldValue = admin.firestore.FieldValue;
 
-const db = admin.firestore()
-
+const db = admin.firestore();
 //obtener todas las categorias de los productos semifinales
 router.get('/categoriaProductoSemi/documents', async (req, res) => {
     try {
-        const query = db.collection('categoriaProductoSemifinal');
-        const querySnapshot = await query.get();
-        const docs = querySnapshot.docs;
+        let data = await functionsCategoria.obtenerCategorias('categoriaProductoSemifinal');
+        return res.status(200).json(data);
 
-        const response = docs.map(doc => ({
-            id:doc.id,
-            nombre: doc.data().nombre,
-            img: doc.data().img,
-            nProductos: doc.data().productos.length,
-            productos: doc.data().productos,
-        }))
-
-        return res.status(200).json(response);
     } catch (error) {
         return res.status(500).json();
     }
@@ -30,13 +23,15 @@ router.get('/categoriaProductoSemi/documents', async (req, res) => {
 //insertar categoria de productos semifinales
 router.post('/categoriaProductoSemi/post', async (req, res) => {
     try {
-        await db.collection('categoriaProductoSemifinal').doc()
-        .create({
-            nombre:req.body.nombre,
-            img:req.body.img,
-            productos: Array(),
-        });
-        return res.status(204).json();
+        const { id, nombre, img } = req.body;
+        const categoria = {
+            nombre:nombre,
+            img:img,
+        }
+        await functionsCrud.insertarDocumentoId('categoriaProductoSemifinal',id,categoria);
+        const status = true;
+
+        return res.status(200).json(status);
     } catch (error) {
         return res.status(500).send(error);
     }
@@ -45,12 +40,16 @@ router.post('/categoriaProductoSemi/post', async (req, res) => {
 //actualizar categoria de productos semifinales
 router.put('/categoriaProductoSemi/put/:id', async (req, res) => {
     try {
-        const doc = db.collection('categoriaProductoSemifinal').doc(req.params.id);
-        await doc.update({
-            nombre:req.body.nombre,
-            img:req.body.img,
-        })
-        return res.status(200).json();
+        const idOld = req.params.id;
+        const { id, nombre, img } = req.body;
+        const categoria = {
+            nombre:nombre,
+            img:img,
+        }
+        await functionsCategoria.editarCategoria('categoriaProductoSemifinal',idOld,id,categoria);
+        const status = false;
+
+        return res.status(200).json(status);
     } catch (error) {
         return res.status(500).send(error);
     }
@@ -59,21 +58,15 @@ router.put('/categoriaProductoSemi/put/:id', async (req, res) => {
 //eliminar categoria de productos semifinales
 router.delete('/categoriaProductoSemi/delete/:id', async (req, res) => {
     try {
-        let messege = 'Ok';
-        let status = 200;
-        const doc = db.collection('categoriaProductoSemifinal').doc(req.params.id);
-        const categoria = await doc.get();
-        if(categoria.data().productos.length == 0){
-            await doc.delete()
-        }else{
-            messege = 'No se puede eliminar la categoria porque hay productos asociados a ella'
-            status = 400;
-        }
-        return res.status(status).json(messege);
+        let response = await functionsCategoria.deleteCategoria('categoriaProductoSemifinal',req.params.id);
+        return res.status(response.status).json(response.messege);
     } catch (error) {
-        return res.status(500).send(error);
+        return res.status(500).send(error.error);
     }
 });
+
+//======FUNCIONES DE PRODUCTOS========
+
 //Obtener todos los productos semifinales asociados a sus categorias
 router.get('/productoSemi/documents', async (req, res) => {
     try {
@@ -111,7 +104,7 @@ router.get('/productoSemi/documents', async (req, res) => {
     }
 });
 
-module.exports = router
+
 
 
 //Agregar Productos
@@ -211,3 +204,6 @@ router.post('/productoSemi/delete/', async (req, res) => {
         return res.status(500).send(error);
     }
 });
+
+
+module.exports = router
