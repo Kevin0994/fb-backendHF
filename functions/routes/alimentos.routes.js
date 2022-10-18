@@ -1,3 +1,5 @@
+const functionsCrud = require('../methods/metodosCrud')
+
 const { Router } = require('express')
 const router = Router();
 
@@ -14,9 +16,18 @@ router.get('/alimentos/documents', async (req, res) => {
 
         const response = docs.map(doc => ({
             id: doc.id,
-            codigo: doc.data().codigo,
             nombre: doc.data().nombre,
         }))
+
+        response.sort(function(a, b){ //Ordena el array de manera Descendente
+            if(a.nombre > b.nombre){
+                return 1
+            } else if (a.nombre < b.nombre) {
+                return -1
+            } else {
+                return 0
+            }
+        })
 
         return res.status(200).json(response);
     } catch (error) {
@@ -39,12 +50,14 @@ router.get('/cosechas/documents/:id', (req, res) => {
 
 router.post('/alimentos/post', async (req, res) => {
     try {
-        await db.collection('listaCosechas').doc()
-        .create({
-            nombre: req.body.nombre,
-            codigo: req.body.codigo,
-        });
-        return res.status(204).json();
+        const { id, nombre } = req.body;
+        const categoria = {
+            nombre:nombre,
+        }
+        await functionsCrud.insertarDocumentoId('listaCosechas',id,categoria);
+        const status = true;
+
+        return res.status(200).json(status);
     } catch (error) {
         return res.status(500).send(error);
     }
@@ -52,12 +65,15 @@ router.post('/alimentos/post', async (req, res) => {
 
 router.put('/alimentos/put/:id', async (req, res) => {
     try {
-        const doc = db.collection('listaCosechas').doc(req.params.id);
-        await doc.update({
-            nombre: req.body.nombre,
-            codigo: req.body.codigo,
-        })
-        return res.status(200).json();
+        const idOld = req.params.id;
+        const { id, nombre } = req.body;
+        const alimento = {
+            nombre:nombre,
+        }
+        await functionsCrud.editarDocumentoId('listaCosechas',idOld,id,alimento);
+        const status = false;
+
+        return res.status(200).json(status);
     } catch (error) {
         return res.status(500).send(error);
     }
@@ -65,8 +81,8 @@ router.put('/alimentos/put/:id', async (req, res) => {
 
 router.delete('/alimentos/delete/:id', async (req, res) => {
     try {
-        const doc = db.collection('listaCosechas').doc(req.params.id);
-        await doc.delete()
+        const id = req.params.id;
+        await functionsCrud.deleteDocumentoId('listaCosechas',id);
         return res.status(200).json();
     } catch (error) {
         return res.status(500).send(error);

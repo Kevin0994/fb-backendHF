@@ -14,4 +14,14 @@ async function insertarDocumentoId(coleccion,id,data){
     await db.collection(coleccion).doc(id).create(data);
 }
 
-module.exports = { insertarDocumento, insertarDocumentoId };
+async function editarDocumentoId(coleccion,idOld,id,data){
+    await db.collection(coleccion).doc(idOld).delete();
+    await db.collection(coleccion).doc(id).create(data);
+}
+
+async function deleteDocumentoId(coleccion,id){
+    await db.collection(coleccion).doc(id).delete();
+}
+
+
+module.exports = { insertarDocumento, insertarDocumentoId, editarDocumentoId, deleteDocumentoId };
