@@ -71,135 +71,78 @@ router.delete('/categoriaProductoSemi/delete/:id', async (req, res) => {
 router.get('/productoSemi/documents', async (req, res) => {
     try {
 
-        const query = db.collection('categoriaProductoSemifinal');
-        const querySnapshot = await query.get();
-        const docs = querySnapshot.docs;
-        const producto= Array();
+        let data = await functionsCategoria.obtenerProductos('categoriaProductoSemifinal');
+        return res.status(200).json(data);
 
-        const response = docs.map(categoria => ({
-            producto: categoria.data().productos.map(function(doc) {
-                document={
-                    id: categoria.id,
-                    categoria: categoria.data().nombre,
-                    codigo: doc.codigo,
-                    nombre: doc.nombre,
-                    img: doc.img,
-                    materiaPrima: doc.materiaPrima,
-                };
-                producto.push(document);
-                return document;
-            })
-        }))
+    } catch (error) {
+        return res.status(500).json(error);
+    }
+});
+//Obtener todos los productos semifinales asociados a una categoria
+router.get('/productoSemi/documents/:id', async (req, res) => {
+    try {
+        const id = req.params.id;
+        let data = await functionsCategoria.getProductosPorCategoria('categoriaProductoSemifinal',id);
+        return res.status(200).json(data);
 
-        //reorganizamos el array con los productos para que solo entrege el id de la materia prima
-        producto.map(function(doc,index,array){
-            if(doc.materiaPrima != null){
-              array[index].materiaPrima = doc.materiaPrima._path.segments[1]
-            }
-        })
-
-        return res.status(200).json(producto);
     } catch (error) {
         return res.status(500).json(error);
     }
 });
 
-
-
-
 //Agregar Productos
 router.post('/productoSemi/post/', async (req, res) => {
     try {
-        let status = 200;
-        let response;
-        const query = await db.collection("categoriaProductoSemifinal")
-        const querySnapshot = await query.get();
-        const docs = querySnapshot.docs;
-        const producto= Array();
-        docs.map(categoria => ({
-            producto: categoria.data().productos.map(function(doc) {
-                document={
-                    codigo: doc.codigo,
-                    nombre: doc.nombre,
-                };
-                producto.push(document);
-                return document;
-            })
-        }))
-        const filtro = producto.filter(function(doc) {
-            if(doc.codigo === req.body.codigo || doc.nombre === req.body.nombre){
-                return doc
-            }else{
-                return false
-            }
-        });
-        if(filtro == false){
-            response = await db.collection("categoriaProductoSemifinal").doc(req.body.categoria).update({
-                productos: FieldValue.arrayUnion({
-                    codigo: req.body.codigo,
-                    img: req.body.img,
-                    materiaPrima: db.doc('listaCosechas/'+req.body.materiaPrima),
-                    nombre: req.body.nombre
-                })
-            })
-        }else{
-            status = 500;
-            response = 'Error al insertar, ya hay un producto con el mismo codigo o nombre';
+        const { id, categoriaId, nombre, img, materiaPrima } = req.body;
+        const producto = {
+            nombre:nombre,
+            img:img,
+            materiaPrima: db.doc('listaCosechas/'+materiaPrima),
         }
-        return res.status(status).json(response);
+        await functionsCategoria.insertarProductos('categoriaProductoSemifinal',categoriaId ,id ,producto);
+        const status = true;
+
+        return res.status(200).json(status);
     } catch (error) {
         return res.status(500).send(error);
     }
 });
 
 //Actualizar Producto
-router.post('/productoSemi/put/', async (req, res) => {
+router.put('/productoSemi/put/:id', async (req, res) => {
     try {
-        const { producto, codigo, img, materiaPrima, nombre, categoria } = req.body;
+        const { id, nombre, img, materiaPrima } = req.body;
+        const document = {
+            idOld : req.params.id,
+            id : id,
+        }
+        const producto = {
+            nombre:nombre,
+            img:img,
+            materiaPrima: db.doc('listaCosechas/'+materiaPrima),
+        }
+        const categoria = {
+            id : categoriaId,
+            idOld : categoriaIdOld,
+        }
+        await functionsCategoria.ActualizarProductoSemi('categoriaProductoSemifinal',document ,categoria ,producto);
+        const status = false;
 
-        const doc =  await db.collection("categoriaProductoSemifinal");
-
-        doc.doc(producto.id).update({
-            productos: FieldValue.arrayRemove({
-                codigo: producto.codigo,
-                img: producto.img,
-                materiaPrima: db.doc('listaCosechas/'+producto.materiaPrima),
-                nombre: producto.nombre
-            })
-        })
-
-        doc.doc(categoria).update({
-            productos: FieldValue.arrayUnion({
-                codigo: codigo,
-                img: img,
-                materiaPrima: db.doc('listaCosechas/'+materiaPrima),
-                nombre: nombre
-            })
-        })
-
-        return res.status(200).json('actualizado');
+        return res.status(200).json(status);
     } catch (error) {
         return res.status(500).send(error);
     }
 });
 
 //eliminar productos semifinales
-router.post('/productoSemi/delete/', async (req, res) => {
+router.delete('/productoSemi/delete/:id/:categoria', async (req, res) => {
     try {
-        const { id, codigo, img, materiaPrima, nombre } = req.body;
+        const id = req.params.id;
+        const categoria = req.params.categoria;
 
-        const doc =  await db.collection("categoriaProductoSemifinal");
+        await functionsCategoria.DeleteProducto('categoriaProductoSemifinal',id ,categoria);
 
-        doc.doc(id).update({
-            productos: FieldValue.arrayRemove({
-                codigo: codigo,
-                img: img,
-                materiaPrima: db.doc('listaCosechas/'+materiaPrima),
-                nombre: nombre
-            })
-        })
-
-        return res.status(200).json('actualizado');
+        return res.status(200).json();
     } catch (error) {
         return res.status(500).send(error);
     }

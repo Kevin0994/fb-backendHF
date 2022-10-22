@@ -5,7 +5,7 @@ const admin = require('firebase-admin')
 
 const db = admin.firestore()
 
-router.get('/productosSemi/documents', async (req, res) => {
+router.get('/productoSemifinales/documents', async (req, res) => {
     try {
 
         const query = db.collection('productoSemifinal').where('estado', '==', 'En proceso');
@@ -94,7 +94,7 @@ router.get('/inventarioProSemi/documents', async (req, res) => {
 });
 
 
-router.post('/productoSemi/post', async (req, res) => {
+router.post('/productoSemifinales/post', async (req, res) => {
     try {
        const doc = db.collection('productoSemifinal').orderBy('n_proceso', 'desc');
         const snapshot = await doc.get();
@@ -127,7 +127,7 @@ router.post('/productoSemi/post', async (req, res) => {
 });
 
 
-router.put('/productosSemi/put/:id', async (req, res) => {
+router.put('/productoSemifinales/put/:id', async (req, res) => {
     try {
         const doc = db.collection('productoSemifinal').doc(req.params.id);
         await doc.update({

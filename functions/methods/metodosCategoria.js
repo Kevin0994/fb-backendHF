@@ -1,4 +1,4 @@
-const { Router, response } = require('express')
+const { Router} = require('express')
 const router = Router();
 
 const admin = require('firebase-admin')
@@ -103,4 +103,99 @@ async function deleteCategoria(collecion,id){
     }
 }
 
-module.exports = { obtenerCategorias, editarCategoria, deleteCategoria };
+
+//Productos
+
+async function obtenerProductos(collecion){
+    const query = db.collection(collecion);
+    const querySnapshot = await query.get();
+    const docs = querySnapshot.docs;
+    let productos = Array();
+
+    await Promise.all(docs.map(async function(categoria){ //Creamos un map asyncrono
+        let consulta = query.doc(categoria.id).collection('productos'); //realizamos la consulta a la collecion productos
+        let resultado = await consulta.get();
+        resultado.docs.map(function (doc){
+            document = {
+                id: doc.id,
+                categoriaId: categoria.id,
+                categoria: categoria.data().nombre,
+                nombre: doc.data().nombre,
+                img: doc.data().img,
+                materiaPrima: doc.data().materiaPrima._path.segments[1], //reorganizamos el array de referencia que nos da firebase para que solo entrege el id de la materia prima
+            }
+            productos.push(document);
+        });
+    }))
+
+    productos.sort(function(a, b){ //Ordena el array de manera Acendente
+        if(a.id > b.id){
+            return 1
+        } else if (a.id < b.id) {
+            return -1
+        } else {
+            return 0
+        }
+    })
+
+    return productos;
+};
+
+//Obtener productos por categoria
+async function getProductosPorCategoria(collecion,id){
+    const query = db.collection(collecion).doc(id).collection('productos');
+    const querySnapshot = await query.get();
+    const docs = querySnapshot.docs;
+    let response = docs.map(categoria => ({
+        id: categoria.id,
+        img: categoria.data().img,
+        nombre: categoria.data().nombre,
+        materiaPrima: categoria.data().materiaPrima._path.segments[1],
+    }))
+
+
+    response.sort(function(a, b){ //Ordena el array de manera Acendente
+        if(a.id > b.id){
+            return 1
+        } else if (a.id < b.id) {
+            return -1
+        } else {
+            return 0
+        }
+    })
+
+    return response;
+};
+
+
+async function insertarProductos(collecion,idCategoria,id,data){
+
+    const query = db.collection(collecion).doc(idCategoria);
+    await query.collection('productos').doc(id).create(data);
+}
+
+//Actualizar productos
+async function ActualizarProductoSemi(collecion,document,categoria,data){
+
+    const query = db.collection(collecion);
+
+    if(document.idOld == document.id && categoria.idOld == categoria.id){
+        await query.doc(categoria.idOld).collection('productos').doc(document.idOld).update(data);
+    }
+
+}
+
+//Eiminar un producto de una categoria
+async function DeleteProducto(collecion,id,categoria){
+    await db.collection(collecion).doc(categoria).collection('productos').doc(id).delete();
+}
+
+module.exports = { obtenerCategorias,
+    editarCategoria,
+    deleteCategoria,
+    obtenerProductos,
+    insertarProductos,
+    ActualizarProductoSemi,
+    getProductosPorCategoria,
+    DeleteProducto,
+};

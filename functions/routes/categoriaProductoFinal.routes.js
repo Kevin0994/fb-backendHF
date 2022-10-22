@@ -71,53 +71,82 @@ router.delete('/categoriaProductoFinal/delete/:id', async (req, res) => {
 
 
 
-//Obtener todos los productos semifinales asociados a sus categorias
+//Obtener todos los productos finales asociados a sus categorias
 router.get('/productoFinal/documents', async (req, res) => {
-    const query = db.collection('categoriaProductoFinal');
-    const querySnapshot = await query.get();
-    const docs = querySnapshot.docs;
-    const producto= Array();
 
-    const response = docs.map(categoria => ({
-        producto: categoria.data().productos.map(function(doc) {
-            document={
-                id: categoria.id,
-                categoria: categoria.data().nombre,
-                codigo: doc.codigo,
-                nombre: doc.nombre,
-                img: doc.img,
-
-            };
-            producto.push(document);
-            return document;
-        })
-    }))
-
-    console.log(response);
-
-    return res.status(200).json(producto);
+    let data = await functionsCategoria.obtenerProductos('categoriaProductoFinal');
+    return res.status(200).json(data);
 });
 
-//cambiar de nombre la coleccion
-/* router.post('/categoriaProductoFinal/post', async (req, res) => {
+//Obtener todos los productos Finales asociados a una categoria
+router.get('/productoFinal/documents/:id', async (req, res) => {
     try {
-        const query = db.collection('categoriaProducto');
-        const querySnapshot = await query.get();
-        const docs = querySnapshot.docs;
+        const id = req.params.id;
+        let data = await functionsCategoria.getProductosPorCategoria('categoriaProductoFinal',id);
+        return res.status(200).json(data);
 
-        const response = docs.map(function(doc) {
-            db.collection('categoriaProductoFinal').doc().create({
-            nombre: doc.data().nombre,
-            img: doc.data().img,
-            productos: doc.data().productos,
-         });
-        })
+    } catch (error) {
+        return res.status(500).json(error);
+    }
+});
 
-        return res.status(204).json();
+//Agregar Productos Finales
+router.post('/productoFinal/post/', async (req, res) => {
+    try {
+        const { id, categoriaId, nombre, img, materiaPrima } = req.body;
+        const producto = {
+            nombre:nombre,
+            img:img,
+            materiaPrima: db.doc('categoriaProductoSemifinal/'+categoriaId+'/productos/'+materiaPrima),
+        }
+        await functionsCategoria.insertarProductos('categoriaProductoFinal',categoriaId ,id ,producto);
+        const status = true;
+
+        return res.status(200).json(status);
     } catch (error) {
         return res.status(500).send(error);
     }
 });
- */
+
+//Actualizar Producto
+router.put('/productoFinal/put/:id', async (req, res) => {
+    try {
+        const { id, nombre, img, materiaPrima } = req.body;
+        const document = {
+            idOld : req.params.id,
+            id : id,
+        }
+        const producto = {
+            nombre:nombre,
+            img:img,
+            materiaPrima: db.doc('listaCosechas/'+materiaPrima),
+        }
+        const categoria = {
+            id : categoriaId,
+            idOld : categoriaIdOld,
+        }
+        await functionsCategoria.ActualizarProductoSemi('categoriaProductoFinal',document ,categoria ,producto);
+        const status = false;
+
+        return res.status(200).json(status);
+    } catch (error) {
+        return res.status(500).send(error);
+    }
+});
+
+
+//Eliminar productos Finales
+router.delete('/productoFinal/delete/:id/:categoria', async (req, res) => {
+    try {
+        const id = req.params.id;
+        const categoria = req.params.categoria;
+
+        await functionsCategoria.DeleteProducto('categoriaProductoFinal',id ,categoria);
+
+        return res.status(200).json();
+    } catch (error) {
+        return res.status(500).send(error);
+    }
+});
 
 module.exports = router
