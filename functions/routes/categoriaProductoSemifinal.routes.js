@@ -82,7 +82,20 @@ router.get('/productoSemi/documents', async (req, res) => {
 router.get('/productoSemi/documents/:id', async (req, res) => {
     try {
         const id = req.params.id;
-        let data = await functionsCategoria.getProductosPorCategoria('categoriaProductoSemifinal','productoSemifinal',id);
+        let data = await functionsCategoria.getProductosPorCategoria('categoriaProductoSemifinal','productoSemifinal','Semi',id);
+        return res.status(200).json(data);
+
+    } catch (error) {
+        return res.status(500).json(error);
+    }
+});
+
+//Buscar un producto por id
+router.get('/productoSemi/:idCategoria/:id', async (req, res) => {
+    try {
+        const id = req.params.id;
+        const idCategoria = req.params.idCategoria;
+        let data = await functionsCategoria.getProducto('categoriaProductoSemifinal','productoSemifinal',idCategoria,id);
         return res.status(200).json(data);
 
     } catch (error) {

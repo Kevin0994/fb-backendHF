@@ -35,7 +35,7 @@ router.get('/alimentos/documents', async (req, res) => {
     }
 });
 
-router.get('/cosechas/documents/:id', (req, res) => {
+router.get('/alimentos/documents/:id', (req, res) => {
     (async () => {
         try {
             const doc = db.collection('listaCosechas').doc(req.params.id);

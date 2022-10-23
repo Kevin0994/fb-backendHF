@@ -80,7 +80,7 @@ router.get('/productoFinal/documents', async (req, res) => {
 router.get('/productoFinal/documents/:id', async (req, res) => {
     try {
         const id = req.params.id;
-        let data = await functionsCategoria.getProductosPorCategoria('categoriaProductoFinal', 'productoFinal',id);
+        let data = await functionsCategoria.getProductosPorCategoria('categoriaProductoFinal', 'productoFinal','Final' ,id);
         return res.status(200).json(data);
 
     } catch (error) {
@@ -95,7 +95,7 @@ router.post('/productoFinal/post/', async (req, res) => {
         const producto = {
             nombre:nombre,
             img:img,
-            materiaPrima: db.doc('categoriaProductoSemifinal/'+categoriaId+'/productos/'+materiaPrima),
+            materiaPrima: db.doc('categoriaProductoSemifinal/'+materiaPrima.categoria+'/productoSemifinal/'+materiaPrima.id),
         }
         await functionsCategoria.insertarProductos('categoriaProductoFinal',categoriaId, 'productoFinal' ,id ,producto);
         const status = true;

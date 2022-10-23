@@ -148,17 +148,33 @@ async function obtenerProductos(collecion,tabla){
 };
 
 //Obtener productos por categoria
-async function getProductosPorCategoria(collecion,subcollecion,id){
+async function getProductosPorCategoria(collecion,subcollecion,tabla,id){
 
     const query = db.collection(collecion).doc(id).collection(subcollecion);
     const querySnapshot = await query.get();
     const docs = querySnapshot.docs;
-    let response = docs.map(categoria => ({
-        id: categoria.id,
-        img: categoria.data().img,
-        nombre: categoria.data().nombre,
-        materiaPrima: categoria.data().materiaPrima._path.segments[1],
-    }))
+    let response = await Promise.all(docs.map(async function (productos){
+        if(tabla === 'Semi'){
+            categoria = await db.collection('categoriaProductoSemifinal').doc(productos._ref._path.segments[1]).get();
+            producto = productos.data().materiaPrima._path.segments[1];
+        }
+        if(tabla === 'Final'){
+            categoria = await db.collection('categoriaProductoFinal').doc(productos._ref._path.segments[1]).get();
+            producto = {
+                categoria: productos.data().materiaPrima._path.segments[1],
+                producto:  productos.data().materiaPrima._path.segments[3]
+            }
+        }
+        document = {
+            id: productos.id,
+            img: productos.data().img,
+            categoriaId: productos._ref._path.segments[1],
+            categoria: categoria.data().nombre,
+            nombre: productos.data().nombre,
+            materiaPrima: producto,
+        }
+        return document;
+    }));
 
 
     response.sort(function(a, b){ //Ordena el array de manera Acendente
@@ -170,6 +186,19 @@ async function getProductosPorCategoria(collecion,subcollecion,id){
             return 0
         }
     })
+
+    return response;
+};
+
+//Obtener los datos de un producto mediante una busqueda de id
+async function getProducto(collecion,subcollecion,idCategoria,id){
+
+    const query = db.collection(collecion).doc(idCategoria).collection(subcollecion).doc(id);
+    const producto = await query.get();
+    let response = {
+        id: producto.id,
+        nombre: producto.data().nombre,
+    }
 
     return response;
 };
@@ -201,6 +230,7 @@ module.exports = { obtenerCategorias,
     editarCategoria,
     deleteCategoria,
     obtenerProductos,
+    getProducto,
     insertarProductos,
     ActualizarProductoSemi,
     getProductosPorCategoria,
