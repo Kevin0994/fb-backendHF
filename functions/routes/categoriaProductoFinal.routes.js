@@ -69,12 +69,10 @@ router.delete('/categoriaProductoFinal/delete/:id', async (req, res) => {
 
 // ======Productos Finales========
 
-
-
 //Obtener todos los productos finales asociados a sus categorias
 router.get('/productoFinal/documents', async (req, res) => {
 
-    let data = await functionsCategoria.obtenerProductos('categoriaProductoFinal');
+    let data = await functionsCategoria.obtenerProductos('productoFinal','Final');
     return res.status(200).json(data);
 });
 
@@ -82,7 +80,7 @@ router.get('/productoFinal/documents', async (req, res) => {
 router.get('/productoFinal/documents/:id', async (req, res) => {
     try {
         const id = req.params.id;
-        let data = await functionsCategoria.getProductosPorCategoria('categoriaProductoFinal',id);
+        let data = await functionsCategoria.getProductosPorCategoria('categoriaProductoFinal', 'productoFinal',id);
         return res.status(200).json(data);
 
     } catch (error) {
@@ -99,7 +97,7 @@ router.post('/productoFinal/post/', async (req, res) => {
             img:img,
             materiaPrima: db.doc('categoriaProductoSemifinal/'+categoriaId+'/productos/'+materiaPrima),
         }
-        await functionsCategoria.insertarProductos('categoriaProductoFinal',categoriaId ,id ,producto);
+        await functionsCategoria.insertarProductos('categoriaProductoFinal',categoriaId, 'productoFinal' ,id ,producto);
         const status = true;
 
         return res.status(200).json(status);
@@ -125,7 +123,7 @@ router.put('/productoFinal/put/:id', async (req, res) => {
             id : categoriaId,
             idOld : categoriaIdOld,
         }
-        await functionsCategoria.ActualizarProductoSemi('categoriaProductoFinal',document ,categoria ,producto);
+        await functionsCategoria.ActualizarProductoSemi('categoriaProductoFinal',categoria, document ,'productoFinal',producto);
         const status = false;
 
         return res.status(200).json(status);
@@ -141,7 +139,7 @@ router.delete('/productoFinal/delete/:id/:categoria', async (req, res) => {
         const id = req.params.id;
         const categoria = req.params.categoria;
 
-        await functionsCategoria.DeleteProducto('categoriaProductoFinal',id ,categoria);
+        await functionsCategoria.DeleteProducto('categoriaProductoFinal',categoria,'productoFinal' ,id );
 
         return res.status(200).json();
     } catch (error) {

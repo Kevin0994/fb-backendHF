@@ -5,10 +5,10 @@ const admin = require('firebase-admin')
 
 const db = admin.firestore()
 
-router.get('/productoSemifinales/documents', async (req, res) => {
+router.get('/inventarioProductoSemifinal/proceso/documents', async (req, res) => {
     try {
 
-        const query = db.collection('productoSemifinal').where('estado', '==', 'En proceso');
+        const query = db.collection('inventarioProductoSemifinal').where('estado', '==', 'En proceso');
         const querySnapshot = await query.get();
         const docs = querySnapshot.docs;
         const productos= Array();
@@ -47,10 +47,10 @@ router.get('/productoSemifinales/documents', async (req, res) => {
     }
 });
 
-router.get('/inventarioProSemi/documents', async (req, res) => {
+router.get('/inventarioProSemi/terminado/documents', async (req, res) => {
     try {
 
-        const query = db.collection('productoSemifinal').where('estado', '==', 'Terminado');
+        const query = db.collection('inventarioProductoSemifinal').where('estado', '==', 'Terminado');
         const querySnapshot = await query.get();
         const docs = querySnapshot.docs;
         const productos= Array();
@@ -94,9 +94,9 @@ router.get('/inventarioProSemi/documents', async (req, res) => {
 });
 
 
-router.post('/productoSemifinales/post', async (req, res) => {
+router.post('/inventarioProductoSemifinal/post', async (req, res) => {
     try {
-       const doc = db.collection('productoSemifinal').orderBy('n_proceso', 'desc');
+       const doc = db.collection('inventarioProductoSemifinal').orderBy('n_proceso', 'desc');
         const snapshot = await doc.get();
         const docs = snapshot.docs;
         let proceso = 1;
@@ -108,7 +108,7 @@ router.post('/productoSemifinales/post', async (req, res) => {
             proceso = response[0].proceso;
         }
 
-        await db.collection('productoSemifinal').doc()
+        await db.collection('inventarioProductoSemifinal').doc()
         .create({
             nombre_mp: req.body.nombre_mp, //nombre matria prima
             nombre_ps: req.body.nombre_ps, //nombre producto semifinal
@@ -127,9 +127,9 @@ router.post('/productoSemifinales/post', async (req, res) => {
 });
 
 
-router.put('/productoSemifinales/put/:id', async (req, res) => {
+router.put('/inventarioProductoSemifinales/put/:id', async (req, res) => {
     try {
-        const doc = db.collection('productoSemifinal').doc(req.params.id);
+        const doc = db.collection('inventarioProductoSemifinal').doc(req.params.id);
         await doc.update({
             fechaSalida: req.body.fechaSalida,
             n_fundas: req.body.n_fundas, //numero de fundas

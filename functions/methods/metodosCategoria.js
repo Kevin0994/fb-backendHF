@@ -103,32 +103,38 @@ async function deleteCategoria(collecion,id){
     }
 }
 
-
 //Productos
 
-async function obtenerProductos(collecion){
-    const query = db.collection(collecion);
+async function obtenerProductos(collecion,tabla){
+    const query = db.collectionGroup(collecion);
     const querySnapshot = await query.get();
     const docs = querySnapshot.docs;
-    let productos = Array();
-
-    await Promise.all(docs.map(async function(categoria){ //Creamos un map asyncrono
-        let consulta = query.doc(categoria.id).collection('productos'); //realizamos la consulta a la collecion productos
-        let resultado = await consulta.get();
-        resultado.docs.map(function (doc){
-            document = {
-                id: doc.id,
-                categoriaId: categoria.id,
-                categoria: categoria.data().nombre,
-                nombre: doc.data().nombre,
-                img: doc.data().img,
-                materiaPrima: doc.data().materiaPrima._path.segments[1], //reorganizamos el array de referencia que nos da firebase para que solo entrege el id de la materia prima
+    const response =  await Promise.all(docs.map(async function(productos){
+        let producto;
+        let nombreCategoria;
+            if(tabla === 'Semi'){
+                nombreCategoria = await db.collection('categoriaProductoSemifinal').doc(productos._ref._path.segments[1]).get();
+                producto = productos.data().materiaPrima._path.segments[1];
             }
-            productos.push(document);
-        });
+            if(tabla === 'Final'){
+                nombreCategoria = await db.collection('categoriaProductoFinal').doc(productos._ref._path.segments[1]).get();
+                producto = {
+                    categoria: productos.data().materiaPrima._path.segments[1],
+                    producto:  productos.data().materiaPrima._path.segments[3]
+                }
+            }
+            document = {
+                id: productos.id,
+                categoriaId: productos._ref._path.segments[1],
+                categoria: nombreCategoria.data().nombre,
+                nombre: productos.data().nombre,
+                img: productos.data().img,
+                materiaPrima: producto, //reorganizamos el array de referencia que nos da firebase para que solo entrege el id de la materia prima
+            }
+            return document;
     }))
 
-    productos.sort(function(a, b){ //Ordena el array de manera Acendente
+    response.sort(function(a, b){ //Ordena el array de manera Acendente
         if(a.id > b.id){
             return 1
         } else if (a.id < b.id) {
@@ -136,14 +142,15 @@ async function obtenerProductos(collecion){
         } else {
             return 0
         }
-    })
+    }) 
 
-    return productos;
+    return response;
 };
 
 //Obtener productos por categoria
-async function getProductosPorCategoria(collecion,id){
-    const query = db.collection(collecion).doc(id).collection('productos');
+async function getProductosPorCategoria(collecion,subcollecion,id){
+
+    const query = db.collection(collecion).doc(id).collection(subcollecion);
     const querySnapshot = await query.get();
     const docs = querySnapshot.docs;
     let response = docs.map(categoria => ({
@@ -168,26 +175,26 @@ async function getProductosPorCategoria(collecion,id){
 };
 
 
-async function insertarProductos(collecion,idCategoria,id,data){
+async function insertarProductos(collecion,idCategoria,subcollecion,id,data){
 
     const query = db.collection(collecion).doc(idCategoria);
-    await query.collection('productos').doc(id).create(data);
+    await query.collection(subcollecion).doc(id).create(data);
 }
 
 //Actualizar productos
-async function ActualizarProductoSemi(collecion,document,categoria,data){
+async function ActualizarProductoSemi(collecion,categoria, subcollecion, document,data){
 
     const query = db.collection(collecion);
 
     if(document.idOld == document.id && categoria.idOld == categoria.id){
-        await query.doc(categoria.idOld).collection('productos').doc(document.idOld).update(data);
+        await query.doc(categoria.idOld).collection(subcollecion).doc(document.idOld).update(data);
     }
 
 }
 
 //Eiminar un producto de una categoria
-async function DeleteProducto(collecion,id,categoria){
-    await db.collection(collecion).doc(categoria).collection('productos').doc(id).delete();
+async function DeleteProducto(collecion,categoria, subcollecion, id,){
+    await db.collection(collecion).doc(categoria).collection(subcollecion).doc(id).delete();
 }
 
 module.exports = { obtenerCategorias,

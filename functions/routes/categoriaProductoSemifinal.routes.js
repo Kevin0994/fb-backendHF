@@ -71,7 +71,7 @@ router.delete('/categoriaProductoSemi/delete/:id', async (req, res) => {
 router.get('/productoSemi/documents', async (req, res) => {
     try {
 
-        let data = await functionsCategoria.obtenerProductos('categoriaProductoSemifinal');
+        let data = await functionsCategoria.obtenerProductos('productoSemifinal','Semi');
         return res.status(200).json(data);
 
     } catch (error) {
@@ -82,7 +82,7 @@ router.get('/productoSemi/documents', async (req, res) => {
 router.get('/productoSemi/documents/:id', async (req, res) => {
     try {
         const id = req.params.id;
-        let data = await functionsCategoria.getProductosPorCategoria('categoriaProductoSemifinal',id);
+        let data = await functionsCategoria.getProductosPorCategoria('categoriaProductoSemifinal','productoSemifinal',id);
         return res.status(200).json(data);
 
     } catch (error) {
@@ -99,7 +99,7 @@ router.post('/productoSemi/post/', async (req, res) => {
             img:img,
             materiaPrima: db.doc('listaCosechas/'+materiaPrima),
         }
-        await functionsCategoria.insertarProductos('categoriaProductoSemifinal',categoriaId ,id ,producto);
+        await functionsCategoria.insertarProductos('categoriaProductoSemifinal',categoriaId,'productoSemifinal' ,id ,producto);
         const status = true;
 
         return res.status(200).json(status);
@@ -125,7 +125,7 @@ router.put('/productoSemi/put/:id', async (req, res) => {
             id : categoriaId,
             idOld : categoriaIdOld,
         }
-        await functionsCategoria.ActualizarProductoSemi('categoriaProductoSemifinal',document ,categoria ,producto);
+        await functionsCategoria.ActualizarProductoSemi('categoriaProductoSemifinal',categoria, document ,'productoSemifinal',producto);
         const status = false;
 
         return res.status(200).json(status);
@@ -140,7 +140,7 @@ router.delete('/productoSemi/delete/:id/:categoria', async (req, res) => {
         const id = req.params.id;
         const categoria = req.params.categoria;
 
-        await functionsCategoria.DeleteProducto('categoriaProductoSemifinal',id ,categoria);
+        await functionsCategoria.DeleteProducto('categoriaProductoSemifinal',categoria,'productoSemifinal' ,id );
 
         return res.status(200).json();
     } catch (error) {
