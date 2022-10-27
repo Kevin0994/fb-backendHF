@@ -59,7 +59,7 @@ router.get('/cosechasHistorial/documents', async (req, res) => {
                     idHistorial: doc.id,
                     ingreso: doc.ingreso /1000,
                     fecha : doc.fecha, // fecha en formato timestamp
-                    fechaF: fechaFormat.getDate() + '-' + ( fechaFormat.getMonth() + 1 ) + '-' + fechaFormat.getFullYear() + '   ' +(fechaFormat.getHours() - 5) + ':' + fechaFormat.getMinutes() + ':' + fechaFormat.getSeconds(), //formato de fecha legible
+                    fechaF: fechaFormat.toLocaleString('en-US', { timeZone: 'America/Guayaquil' }), //formato de fecha legible
                     responsable: doc.responsable,
                 };
                 historial.push(document);
@@ -264,6 +264,7 @@ router.delete('/cosechas/documents/:id', async (req, res) => {
     }
 });
 
+//Valida si exite stock para fabricar un producto semifinal y actualiza el stock de la casecha a usar para la fabricacion
 router.put('/stock/:nombre', (req, res) => {
     (async () => {
         try {
