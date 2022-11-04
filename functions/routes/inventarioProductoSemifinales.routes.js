@@ -12,7 +12,7 @@ const Timestamp = admin.firestore.Timestamp;
 router.get('/inventarioProSemi/documents', async (req, res) => {
     try {
 
-        let data = await functionsInventario.getInventarioSemifinal('inventarioProductoSemifinal');
+        let data = await functionsInventario.getInventarioProductos('inventarioProductoSemifinal');
         return res.status(200).json(data);
     } catch (error) {
         return res.status(500).json();
@@ -43,15 +43,13 @@ router.get('/inventarioProSemi/terminado/documents', async (req, res) => {
 
 router.post('/inventarioProductoSemifinal/post', async (req, res) => {
     try {
-        const { idProducto, nombre_mp, nombre_ps, lote_mp, lote_ps, peso_mp, n_proceso, fechaEntrada, responsable, estado } = req.body;
-        const id = {
-            producto: idProducto,
-            ingreso: n_proceso,
-        }
+        const { codigo, nombre_mp, nombre, lote_mp, lote, peso_mp, n_proceso, fechaEntrada, responsable, estado } = req.body;
+
         const producto = {
-            nombre: nombre_ps,
+            codigo : codigo,
+            nombre: nombre,
             nombreMp: nombre_mp,
-            lote: lote_ps,
+            lote: lote,
             stock: 0,
         }
         const ingreso = {
@@ -61,8 +59,8 @@ router.post('/inventarioProductoSemifinal/post', async (req, res) => {
             responsable: responsable,
             estado: estado,
         }
-        await functionsInventario.postInventarioSemifinalProceso('inventarioProductoSemifinal',id,producto,ingreso);
-        return res.status(200).json();
+        let data = await functionsInventario.postInventarioSemifinalProceso('inventarioProductoSemifinal',n_proceso,producto,ingreso);
+        return res.status(200).json(data);
     } catch (error) {
         return res.status(500).send(error);
     }
@@ -93,18 +91,18 @@ router.put('/inventarioProductoSemifinales/put/:id', async (req, res) => {
 
 
 //Valida si hay stock para fabricar un producto Final y actualiza el stock del producto semifinal a usar para la fabricacion
-router.put('/stock/:nombre', (req, res) => {
+router.put('/inventarioProductoSemifinales/stock/:codigo', (req, res) => {
     (async () => {
         try {
-            const nombre = req.params.nombre;
+            const codigo = req.params.codigo;
             let ingreso = req.body.ingreso;
             let total = 0;
             let status = 500;
             const resultado= Array();
             const response= Array();
-            const doc = db.collection("cosechas").where("nombre", "==", nombre);
-            const cosecha = await doc.get();
-            const docs = cosecha.docs;
+            const doc = db.collection("inventarioProductoSemifinal").where("codigo", "==", codigo);
+            const inventarioSemi = await doc.get();
+            const docs = inventarioSemi.docs;
             docs.map(function(doc){
                 if(doc.data().stock != 0){
                     document={
@@ -138,7 +136,7 @@ router.put('/stock/:nombre', (req, res) => {
                                 salida: ingreso,
                             };
                             response.push(document);
-                            db.collection('cosechas').doc(doc.id).update({
+                            db.collection('inventarioProductoSemifinal').doc(doc.id).update({
                                 stock: doc.stock - ingreso,
                             })
                             status = 200;
@@ -149,7 +147,7 @@ router.put('/stock/:nombre', (req, res) => {
                                 salida: doc.stock,
                             };
 
-                            db.collection('cosechas').doc(doc.id).update({
+                            db.collection('inventarioProductoSemifinal').doc(doc.id).update({
                                 stock: 0,
                             })
                             ingreso -= doc.stock

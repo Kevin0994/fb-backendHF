@@ -162,4 +162,5 @@ router.delete('/productoSemi/delete/:id/:categoria', async (req, res) => {
 });
 
 
+
 module.exports = router
