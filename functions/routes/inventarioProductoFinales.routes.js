@@ -19,6 +19,16 @@ router.get('/inventarioProductoFinal/documents', async (req, res) => {
     }
 });
 
+router.get('/inventarioProductoFinal/all/documents', async (req, res) => {
+    try {
+
+        let data = await functionsInventario.getInventarioFinal('inventarioProductoFinal');
+        return res.status(200).json(data);
+    } catch (error) {
+        return res.status(500).json();
+    }
+});
+
 router.post('/inventarioProductoFinal/post', async (req, res) => {
     try {
         const { codigo, nombre_mp, nombre, lote_mp, lote, peso_mp, n_proceso, fechaEntrada, unidades, pesoFinal, responsable, estado } = req.body;
