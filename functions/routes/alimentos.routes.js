@@ -5,31 +5,15 @@ const router = Router();
 
 const admin = require('firebase-admin')
 
-const db = admin.firestore()
+const db = admin.firestore();
+
 
 router.get('/alimentos/documents', async (req, res) => {
     try {
 
-        const query = db.collection('listaCosechas');
-        const querySnapshot = await query.get();
-        const docs = querySnapshot.docs;
+        let data = await functionsCrud.getAlimentoProductos();
 
-        const response = docs.map(doc => ({
-            id: doc.id,
-            nombre: doc.data().nombre,
-        }))
-
-        response.sort(function(a, b){ //Ordena el array de manera Descendente
-            if(a.nombre > b.nombre){
-                return 1
-            } else if (a.nombre < b.nombre) {
-                return -1
-            } else {
-                return 0
-            }
-        })
-
-        return res.status(200).json(response);
+        return res.status(200).json(data);
     } catch (error) {
         return res.status(500).json();
     }
@@ -55,6 +39,7 @@ router.post('/alimentos/post', async (req, res) => {
             nombre:nombre,
         }
         await functionsCrud.insertarDocumentoId('listaCosechas',id,categoria);
+        
         const status = true;
 
         return res.status(200).json(status);

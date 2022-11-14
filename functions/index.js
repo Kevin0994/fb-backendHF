@@ -3,11 +3,18 @@ const express = require('express');
 const cors = require('cors');
 const admin = require('firebase-admin');
 
+const serviceAccount = admin.credential.cert("./permisos.json");
+
+const UrlDatabase = "https://hf-trazabilidad-89c0e-default-rtdb.firebaseio.com";
+
+const BUCKET = "hf-trazabilidad-89c0e.appspot.com";
+
 const app= express();
 
 admin.initializeApp({
-    credential: admin.credential.cert('./permisos.json'),
-    databaseURL: "https://hf-trazabilidad-89c0e-default-rtdb.firebaseio.com" 
+    credential: serviceAccount,
+    databaseURL: UrlDatabase,
+    storageBucket:  BUCKET,
 })
 
 app.use(cors());

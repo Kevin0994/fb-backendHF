@@ -1,5 +1,7 @@
-const functionsCategoria = require('../methods/metodosCategoria')
+
 const functionsCrud = require('../methods/metodosCrud')
+const functionsCategoria = require('../methods/metodosCategoria')
+const functionStorage = require('../services/firebase-storage')
 
 const { Router } = require('express')
 const router = Router();
@@ -12,7 +14,7 @@ const db = admin.firestore()
 router.get('/categoriaProductoFinal/documents', async (req, res) => {
     try {
 
-        let data = await functionsCategoria.obtenerCategorias('categoriaProductoFinal');
+        let data = await functionsCategoria.obtenerCategorias('categoriaProductoFinal','productoFinal');
         return res.status(200).json(data);
 
     } catch (error) {
@@ -23,14 +25,38 @@ router.get('/categoriaProductoFinal/documents', async (req, res) => {
 //insertar categoria de productos finales
 router.post('/categoriaProductoFinal/post', async (req, res) => {
     try {
-        const { id, nombre, img } = req.body;
-        const categoria = {
-            nombre:nombre,
-            img:img,
+
+        const { id, nombre, img, status } = req.body;
+        let categoria;
+        let imagen;
+
+        if(status){
+            let urlImg = await functionStorage.uploadImage(img,'categoriaFinal/'+nombre+'/',nombre);
+            imagen = {
+                url:urlImg.url,
+                name:urlImg.reference,
+            }
+
+            categoria = {
+                nombre:nombre,
+                img:imagen
+            }
+        }else{
+            imagen = null;
+            categoria = {
+                nombre:nombre,
+                img: img,
+            }
         }
-        await functionsCrud.insertarDocumentoId('categoriaProductoFinal',id,categoria);
-        const status = true;
-        return res.status(200).json(status);
+
+        await functionsCrud.insertarDocumentoId('categoriaProductoFinal' ,id,categoria);
+        const response = {
+            status: true,
+            img: imagen,
+        };
+
+        //
+        return res.status(200).json(response);
     } catch (error) {
         return res.status(500).send(error);
     }
@@ -40,15 +66,36 @@ router.post('/categoriaProductoFinal/post', async (req, res) => {
 router.put('/categoriaProductoFinal/put/:id', async (req, res) => {
     try {
         const idOld = req.params.id;
-        const { id, nombre, img } = req.body;
-        const categoria = {
-            nombre:nombre,
-            img:img,
-        }
-        await functionsCategoria.editarCategoria('categoriaProductoFinal',idOld,id,categoria);
-        const status = false;
+        const { id, nombre, img, status } = req.body;
+        let categoria;
+        let imagen;
 
-        return res.status(200).json(status);
+        if(status){
+            let urlImg = await functionStorage.updateImage(img,'categoriaFinal/'+nombre+'/',nombre);
+            imagen = {
+                url:urlImg.url,
+                name:urlImg.reference,
+            }
+
+            categoria = {
+                nombre:nombre,
+                img: imagen,
+            }
+        }else{
+            imagen = img;
+            categoria = {
+                nombre:nombre,
+                img: img,
+            }
+        }
+
+        await functionsCategoria.editarCategoria('categoriaProductoFinal','productoFinal' ,idOld,id,categoria);
+        const response = {
+            status: false,
+            img:imagen,
+        };
+
+        return res.status(200).json(response);
     } catch (error) {
         return res.status(500).send(error);
     }
@@ -58,7 +105,7 @@ router.put('/categoriaProductoFinal/put/:id', async (req, res) => {
 router.delete('/categoriaProductoFinal/delete/:id', async (req, res) => {
     try {
 
-        let response = await functionsCategoria.deleteCategoria('categoriaProductoFinal',req.params.id);
+        let response = await functionsCategoria.deleteCategoria('categoriaProductoFinal', 'productoFinal',req.params.id);
         return res.status(response.status).json(response.messege);
 
     } catch (error) {
@@ -72,7 +119,7 @@ router.delete('/categoriaProductoFinal/delete/:id', async (req, res) => {
 //Obtener todos los productos finales asociados a sus categorias
 router.get('/productoFinal/documents', async (req, res) => {
 
-    let data = await functionsCategoria.obtenerProductos('productoFinal','Final');
+    let data = await functionsCategoria.obtenerProductos('categoriaProductoFinal', 'productoFinal');
     return res.status(200).json(data);
 });
 

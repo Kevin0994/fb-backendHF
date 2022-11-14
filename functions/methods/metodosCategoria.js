@@ -1,17 +1,19 @@
 const { Router} = require('express')
 const router = Router();
+const functionsCrud = require('../methods/metodosCrud')
+const functionStorage = require('../services/firebase-storage')
 
 const admin = require('firebase-admin')
 const FieldValue = admin.firestore.FieldValue;
 
 const db = admin.firestore();
 
-async function obtenerCategorias(collecion){
+async function obtenerCategorias(collecion,subcollecion){
     const query = db.collection(collecion);
     const querySnapshot = await query.get();
     const docs = querySnapshot.docs;
     let response = await Promise.all(docs.map(async function(doc){ //Creamos un map asyncrono
-        let consulta = query.doc(doc.id).collection('productos'); //realizamos la consulta a la collecion productos
+        let consulta = query.doc(doc.id).collection(subcollecion); //realizamos la consulta a la collecion productos
         let resultado = await consulta.get();
         let cant = resultado.docs.map(doc => { doc.id }); //Creamos un array con los id de los productos encontrados
         document = {
@@ -36,7 +38,7 @@ async function obtenerCategorias(collecion){
     return response;
 };
 
-async function editarCategoria(collecion,idOld,id,data){
+async function editarCategoria(collecion,subcollecion,idOld,id,data){
 
     const queryCategoria = db.collection(collecion).doc(idOld);
 
@@ -46,7 +48,7 @@ async function editarCategoria(collecion,idOld,id,data){
 
     }else{
 
-        const queryProductos = queryCategoria.collection('productos');
+        const queryProductos = queryCategoria.collection(subcollecion);
         const resultado = await queryProductos.get();
         let productos = await resultado.docs.map(doc => ({ //Busca y crea un array con los productos asociados a la categoria que se edito el id
             id: doc.id,
@@ -60,7 +62,7 @@ async function editarCategoria(collecion,idOld,id,data){
         .set(data);
 
         if(productos.length != 0){ //Verifica si hay productos asociados en la anterior categoria
-            query = db.collection(collecion).doc(id).collection('productos'); // si encuentra productos los ingresa en la nueva
+            query = db.collection(collecion).doc(id).collection(subcollecion); // si encuentra productos los ingresa en la nueva
             await Promise.all(productos.map(async function(pro){
                 await query.doc(pro.id)
                 .set({
@@ -70,7 +72,7 @@ async function editarCategoria(collecion,idOld,id,data){
                 })
             }))
 
-            await queryCategoria.collection('productos').listDocuments().then(val => {// Borra los productos asociados de la anterior categoria
+            await queryCategoria.collection(subcollecion).listDocuments().then(val => {// Borra los productos asociados de la anterior categoria
                 val.map(doc => {
                     doc.delete();
                 })
@@ -84,12 +86,14 @@ async function editarCategoria(collecion,idOld,id,data){
     }
 }
 
-async function deleteCategoria(collecion,id){
+async function deleteCategoria(collecion, subcollecion,id){
 
     let response;
     const doc = db.collection(collecion).doc(id);
-    let productos = await  db.collection(collecion).doc(id).collection('productos').listDocuments();
+    let productos = await  db.collection(collecion).doc(id).collection(subcollecion).listDocuments();
     if(productos.length == 0){
+        const refImg = await doc.get();
+        await functionStorage.deleteImage(refImg.data().img.name);
         await doc.delete();
         return response ={
             messege : 'Ok',
@@ -105,33 +109,38 @@ async function deleteCategoria(collecion,id){
 
 //Productos
 
-async function obtenerProductos(collecion,tabla){
-    const query = db.collectionGroup(collecion);
+async function obtenerProductos(collecion, subcollecion){
+    const query = db.collection(collecion);
     const querySnapshot = await query.get();
     const docs = querySnapshot.docs;
-    const response =  await Promise.all(docs.map(async function(productos){
-        let producto;
-        let nombreCategoria;
-            if(tabla === 'Semi'){
-                nombreCategoria = await db.collection('categoriaProductoSemifinal').doc(productos._ref._path.segments[1]).get();
-                producto = productos.data().materiaPrima._path.segments[1];
-            }
-            if(tabla === 'Final'){
-                nombreCategoria = await db.collection('categoriaProductoFinal').doc(productos._ref._path.segments[1]).get();
-                producto = {
-                    categoria: productos.data().materiaPrima._path.segments[1],
-                    producto:  productos.data().materiaPrima._path.segments[3]
+    let response = Array();
+
+    await Promise.all(docs.map(async function(categoria){
+        let querySubcollection =  query.doc(categoria.id).collection(subcollecion);
+        let productos = await querySubcollection.get();
+        if(productos.docs.length != 0){
+            productos.docs.map(function (producto){
+                let productoRef;
+                if(subcollecion === 'productoSemifinal'){
+                    productoRef = producto.data().materiaPrima._path.segments[1];
                 }
-            }
-            document = {
-                id: productos.id,
-                categoriaId: productos._ref._path.segments[1],
-                categoria: nombreCategoria.data().nombre,
-                nombre: productos.data().nombre,
-                img: productos.data().img,
-                materiaPrima: producto, //reorganizamos el array de referencia que nos da firebase para que solo entrege el id de la materia prima
-            }
-            return document;
+                if(subcollecion === 'productoFinal'){
+                    productoRef = {
+                        categoria: producto.data().materiaPrima._path.segments[1],
+                        producto:  producto.data().materiaPrima._path.segments[3]
+                    }
+                }
+                document = {
+                    id: producto.id,
+                    categoriaId: categoria.id,
+                    categoria: categoria.data().nombre,
+                    nombre: producto.data().nombre,
+                    img: producto.data().img,
+                    materiaPrima: productoRef, //reorganizamos el array de referencia que nos da firebase para que solo entrege el id de la materia prima
+                }
+                response.push(document);
+            })
+        }
     }))
 
     response.sort(function(a, b){ //Ordena el array de manera Acendente

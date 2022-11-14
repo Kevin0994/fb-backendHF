@@ -1,18 +1,19 @@
 
-const functionsCategoria = require('../methods/metodosCategoria')
 const functionsCrud = require('../methods/metodosCrud')
+const functionsCategoria = require('../methods/metodosCategoria')
+const functionStorage = require('../services/firebase-storage')
 
 const { Router } = require('express')
 const router = Router();
 
 const admin = require('firebase-admin')
-const FieldValue = admin.firestore.FieldValue;
 
 const db = admin.firestore();
+
 //obtener todas las categorias de los productos semifinales
 router.get('/categoriaProductoSemi/documents', async (req, res) => {
     try {
-        let data = await functionsCategoria.obtenerCategorias('categoriaProductoSemifinal');
+        let data = await functionsCategoria.obtenerCategorias('categoriaProductoSemifinal','productoSemifinal');
         return res.status(200).json(data);
 
     } catch (error) {
@@ -21,17 +22,38 @@ router.get('/categoriaProductoSemi/documents', async (req, res) => {
 });
 
 //insertar categoria de productos semifinales
-router.post('/categoriaProductoSemi/post', async (req, res) => {
+router.post('/categoriaProductoSemi/post' , async (req, res) => {
     try {
-        const { id, nombre, img } = req.body;
-        const categoria = {
-            nombre:nombre,
-            img:img,
-        }
-        await functionsCrud.insertarDocumentoId('categoriaProductoSemifinal',id,categoria);
-        const status = true;
+        const { id, nombre, img, status } = req.body;
+        let categoria;
+        let imagen;
 
-        return res.status(200).json(status);
+        if(status){
+            let urlImg = await functionStorage.uploadImage(img,'categoriaSemifinal/'+nombre+'/',nombre);
+            imagen = {
+                url:urlImg.url,
+                name:urlImg.reference,
+            }
+
+            categoria = {
+                nombre:nombre,
+                img:imagen
+            }
+        }else{
+            imagen = null;
+            categoria = {
+                nombre:nombre,
+                img: img,
+            }
+        }
+
+        await functionsCrud.insertarDocumentoId('categoriaProductoSemifinal' ,id,categoria);
+        const response = {
+            status: true,
+            img: imagen,
+        };
+
+        return res.status(200).json(response);
     } catch (error) {
         return res.status(500).send(error);
     }
@@ -41,15 +63,34 @@ router.post('/categoriaProductoSemi/post', async (req, res) => {
 router.put('/categoriaProductoSemi/put/:id', async (req, res) => {
     try {
         const idOld = req.params.id;
-        const { id, nombre, img } = req.body;
-        const categoria = {
-            nombre:nombre,
-            img:img,
+        const { id, nombre, img, status } = req.body;
+        let categoria;
+        let imagen;
+        if(status){ //verifica si existo alguna imagen
+            let urlImg = await functionStorage.updateImage(img,'categoriaSemifinal/'+nombre+'/',nombre);
+            imagen = {
+                url:urlImg.url,
+                name:urlImg.reference,
+            }
+            categoria = {
+                nombre:nombre,
+                img: imagen,
+            }
+        }else{
+            imagen = img;
+            categoria = {
+                nombre:nombre,
+                img: img,
+            }
         }
-        await functionsCategoria.editarCategoria('categoriaProductoSemifinal',idOld,id,categoria);
-        const status = false;
 
-        return res.status(200).json(status);
+        await functionsCategoria.editarCategoria('categoriaProductoSemifinal','productoSemifinal' ,idOld,id,categoria);
+        const response = {
+            status: false,
+            img:imagen,
+        };
+
+        return res.status(200).json(response);
     } catch (error) {
         return res.status(500).send(error);
     }
@@ -58,7 +99,7 @@ router.put('/categoriaProductoSemi/put/:id', async (req, res) => {
 //eliminar categoria de productos semifinales
 router.delete('/categoriaProductoSemi/delete/:id', async (req, res) => {
     try {
-        let response = await functionsCategoria.deleteCategoria('categoriaProductoSemifinal',req.params.id);
+        let response = await functionsCategoria.deleteCategoria('categoriaProductoSemifinal','productoSemifinal',req.params.id);
         return res.status(response.status).json(response.messege);
     } catch (error) {
         return res.status(500).send(error.error);
@@ -71,7 +112,7 @@ router.delete('/categoriaProductoSemi/delete/:id', async (req, res) => {
 router.get('/productoSemi/documents', async (req, res) => {
     try {
 
-        let data = await functionsCategoria.obtenerProductos('productoSemifinal','Semi');
+        let data = await functionsCategoria.obtenerProductos('categoriaProductoSemifinal' ,'productoSemifinal');
         return res.status(200).json(data);
 
     } catch (error) {
