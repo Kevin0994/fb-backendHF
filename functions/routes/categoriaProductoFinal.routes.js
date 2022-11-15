@@ -138,16 +138,39 @@ router.get('/productoFinal/documents/:id', async (req, res) => {
 //Agregar Productos Finales
 router.post('/productoFinal/post/', async (req, res) => {
     try {
-        const { id, categoriaId, nombre, img, materiaPrima } = req.body;
-        const producto = {
-            nombre:nombre,
-            img:img,
-            materiaPrima: db.doc('categoriaProductoSemifinal/'+materiaPrima.categoria+'/productoSemifinal/'+materiaPrima.id),
-        }
-        await functionsCategoria.insertarProductos('categoriaProductoFinal',categoriaId, 'productoFinal' ,id ,producto);
-        const status = true;
+        const { id, categoriaId, nombre, img, materiaPrima, status } = req.body;
+        const refMateriaPrima = db.doc('categoriaProductoSemifinal/'+materiaPrima.categoria+'/productoSemifinal/'+materiaPrima.id);
+        let producto;
+        let imagen;
 
-        return res.status(200).json(status);
+        if(status){
+            let urlImg = await functionStorage.uploadImage(img,'productoFinal/'+nombre+'/',nombre);
+            imagen = {
+                url:urlImg.url,
+                name:urlImg.reference,
+            }
+
+            producto = {
+                nombre:nombre,
+                img:imagen,
+                materiaPrima: refMateriaPrima,
+            }
+        }else{
+            imagen = null;
+            producto = {
+                nombre:nombre,
+                img:img,
+                materiaPrima: refMateriaPrima,
+            }
+        }
+
+        await functionsCategoria.insertarProductos('categoriaProductoFinal',categoriaId, 'productoFinal' ,id ,producto);
+        const response = {
+            status: true,
+            img: imagen,
+        };
+
+        return res.status(200).json(response);
     } catch (error) {
         return res.status(500).send(error);
     }
@@ -156,24 +179,46 @@ router.post('/productoFinal/post/', async (req, res) => {
 //Actualizar Producto
 router.put('/productoFinal/put/:id', async (req, res) => {
     try {
-        const { id, nombre, img, materiaPrima } = req.body;
+        const { id, nombre, img, materiaPrima, categoriaId, categoriaIdOld, status } = req.body;
+        const refMateriaPrima = db.doc('categoriaProductoSemifinal/'+materiaPrima.categoria+'/productoSemifinal/'+materiaPrima.id);
+        let producto;
+        let imagen;
+
         const document = {
             idOld : req.params.id,
             id : id,
         }
-        const producto = {
-            nombre:nombre,
-            img:img,
-            materiaPrima: db.doc('listaCosechas/'+materiaPrima),
+        if(status){ //verifica si existo alguna imagen
+            let urlImg = await functionStorage.updateImage(img,'productoFinal/'+nombre+'/',nombre);
+            imagen = {
+                url:urlImg.url,
+                name:urlImg.reference,
+            }
+            producto = {
+                nombre:nombre,
+                img:imagen,
+                materiaPrima: refMateriaPrima,
+            }
+        }else{
+            imagen = img;
+            producto = {
+                nombre:nombre,
+                img:imagen,
+                materiaPrima: refMateriaPrima,
+            }
         }
+        
         const categoria = {
             id : categoriaId,
             idOld : categoriaIdOld,
         }
-        await functionsCategoria.ActualizarProductoSemi('categoriaProductoFinal',categoria, document ,'productoFinal',producto);
-        const status = false;
+        await functionsCategoria.ActualizarProductoSemi('categoriaProductoFinal',categoria, 'productoFinal', document ,producto);
+        const response = {
+            status: false,
+            img: imagen,
+        };
 
-        return res.status(200).json(status);
+        return res.status(200).json(response);
     } catch (error) {
         return res.status(500).send(error);
     }
