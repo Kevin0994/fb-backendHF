@@ -152,33 +152,37 @@ router.post('/productoSemi/post/', async (req, res) => {
         let producto;
         let imagen;
 
-        if(status){
-            let urlImg = await functionStorage.uploadImage(img,'productoSemifinal/'+nombre+'/',nombre);
-            imagen = {
-                url:urlImg.url,
-                name:urlImg.reference,
-            }
+        let refMateriaPrima =  await functionsCategoria.validarMateriaPrima(materiaPrima);
 
+        if(refMateriaPrima.length != 0){
             producto = {
                 nombre:nombre,
-                img:imagen,
-                materiaPrima: db.doc('listaCosechas/'+materiaPrima),
+                materiaPrima: refMateriaPrima,
             }
+    
+            if(status){
+                let urlImg = await functionStorage.uploadImage(img,'productoSemifinal/'+nombre+'/',nombre);
+                imagen = {
+                    url:urlImg.url,
+                    name:urlImg.reference,
+                }
+    
+                producto['img'] = imagen;
+            }else{
+                imagen = null;
+                producto['img'] = img;
+            }
+    
+            await functionsCategoria.insertarProductos('categoriaProductoSemifinal',categoriaId,'productoSemifinal' ,id ,producto);
+            const response = {
+                status: true,
+                img: imagen,
+            }; 
+            return res.status(200).json(response);
         }else{
-            imagen = null;
-            producto = {
-                nombre:nombre,
-                img:img,
-                materiaPrima: db.doc('listaCosechas/'+materiaPrima),
-            }
+            return res.status(500).send('No se encontro ningun documento referente a la materia prima que se quizo ingresar');
         }
 
-        await functionsCategoria.insertarProductos('categoriaProductoSemifinal',categoriaId,'productoSemifinal' ,id ,producto);
-        const response = {
-            status: true,
-            img: imagen,
-        };
-        return res.status(200).json(response);
     } catch (error) {
         return res.status(500).send(error);
     }
@@ -196,24 +200,23 @@ router.put('/productoSemi/put/:id', async (req, res) => {
             id : id,
         }
 
-        if(status){ //verifica si existo alguna imagen
+        producto = {
+            nombre:nombre,
+            materiaPrima: db.doc('listaCosechas/'+materiaPrima),
+        }
+
+        if(status){ //verifica si existe alguna imagen
             let urlImg = await functionStorage.updateImage(img,'productoSemifinal/'+nombre+'/',nombre);
             imagen = {
                 url:urlImg.url,
                 name:urlImg.reference,
             }
-            producto = {
-                nombre:nombre,
-                img:imagen,
-                materiaPrima: db.doc('listaCosechas/'+materiaPrima),
-            }
+
+            producto['img']=imagen;
+
         }else{
             imagen = img;
-            producto = {
-                nombre:nombre,
-                img:imagen,
-                materiaPrima: db.doc('listaCosechas/'+materiaPrima),
-            }
+            producto['img']=imagen;
         }
 
         const categoria = {

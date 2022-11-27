@@ -218,5 +218,115 @@ async function postInventarioProductoFinal(coleccion,idIngreso,producto,ingreso)
 }
 
 
+async function validateStock(collecion,name,peso){
+    const nombre = name;
+    let ingreso = peso;
+    let total = 0;
+    let status = 500;
+    const resultado= Array();
+    const response= Array();
+    const doc = db.collection(collecion).where("nombre", "==", nombre);
+    const cosecha = await doc.get();
+    const docs = cosecha.docs;
+    if(docs.length == 0){
+        let document = {
+            messege : 'No se encontro la materiaPrima',
+            stock : ingreso,
+            status : 500
+        }
+        response.push(document);
+        return
+    }
+    docs.map(function(doc){
+        if(doc.data().stock != 0){
+            document={
+                id: doc.id,
+                nombre:  doc.data().nombre,
+                lote: doc.data().lote,
+                stock: doc.data().stock,
+            };
+            total += doc.data().stock
+            console.log('total');
+            resultado.push(document);
+            return document;
+        }
+    });
 
-module.exports = { getInventarioSemifinalProcesos, postInventarioSemifinalProceso, putInventarioSemifinalProceso, getInventarioProductos ,getInventarioFinal ,postInventarioProductoFinal };
+    if(resultado.length != 0){
+        resultado.sort(function(a, b){
+            if(a.lote < b.lote){
+                return 1
+            } else if (a.lote > b.lote) {
+                return -1
+            } else {
+                return 0
+            }
+        })
+
+        resultado.every(function(doc){
+
+            if(ingreso <= total){
+                if(doc.stock >= ingreso){
+                    document={
+                        id: doc.nombre,
+                        lote: doc.lote,
+                        salida: ingreso,
+                    };
+                    response.push(document);
+                    db.collection(collecion).doc(doc.id).update({
+                        stock: doc.stock - ingreso,
+                    })
+                    status = 200;
+                    return false;
+                }else{
+                    document={
+                        id: doc.nombre,
+                        lote: doc.lote,
+                        salida: doc.stock,
+                    };
+
+                    db.collection(collecion).doc(doc.id).update({
+                        stock: 0,
+                    })
+                    ingreso -= doc.stock
+                    response.push(document);
+                    status = 200;
+                    return true;
+                }
+            }else{
+                document = {
+                    messege : 'stock insuficiente',
+                    stock : ingreso - total,
+                    status : 500
+                }
+
+                response.push(document);
+                return false;
+            }
+
+        })
+    }else{
+        document = {
+            messege : 'stock insuficiente',
+            stock : ingreso,
+            status : 500
+        }
+
+        response.push(document);
+
+    }
+    console.log('Finalizado');
+    console.log(response);
+
+    return response;
+}
+
+
+module.exports = { getInventarioSemifinalProcesos, 
+    postInventarioSemifinalProceso, 
+    putInventarioSemifinalProceso, 
+    getInventarioProductos ,
+    getInventarioFinal ,
+    postInventarioProductoFinal,
+    validateStock,
+ };

@@ -138,39 +138,44 @@ router.get('/productoFinal/documents/:id', async (req, res) => {
 //Agregar Productos Finales
 router.post('/productoFinal/post/', async (req, res) => {
     try {
-        const { id, categoriaId, nombre, img, materiaPrima, status } = req.body;
-        const refMateriaPrima = db.doc('categoriaProductoSemifinal/'+materiaPrima.categoria+'/productoSemifinal/'+materiaPrima.id);
+        const { id, categoriaId, nombre, presentacion, img, materiaPrima, status } = req.body;
         let producto;
         let imagen;
 
-        if(status){
-            let urlImg = await functionStorage.uploadImage(img,'productoFinal/'+nombre+'/',nombre);
-            imagen = {
-                url:urlImg.url,
-                name:urlImg.reference,
+        let refMateriaPrima =  await functionsCategoria.validarMateriaPrima(materiaPrima);
+
+        if(refMateriaPrima.length != 0){
+            producto = {
+                nombre:nombre,
+                presentacion: presentacion,
+                materiaPrima: refMateriaPrima,
+            }
+    
+            if(status){
+                let urlImg = await functionStorage.uploadImage(img,'productoFinal/'+nombre+'/',nombre);
+                imagen = {
+                    url:urlImg.url,
+                    name:urlImg.reference,
+                }
+
+                producto['img'] = imagen;
+
+            }else{
+                imagen = null;
+                producto['img'] = img;
             }
 
-            producto = {
-                nombre:nombre,
-                img:imagen,
-                materiaPrima: refMateriaPrima,
-            }
+            await functionsCategoria.insertarProductos('categoriaProductoFinal',categoriaId, 'productoFinal' ,id ,producto);
+            const response = {
+                status: true,
+                img: imagen,
+            };
+
+            return res.status(200).json(response);
         }else{
-            imagen = null;
-            producto = {
-                nombre:nombre,
-                img:img,
-                materiaPrima: refMateriaPrima,
-            }
+            return res.status(500).send('No se encontro ningun documento referente a la materia prima que se quizo ingresar');
         }
 
-        await functionsCategoria.insertarProductos('categoriaProductoFinal',categoriaId, 'productoFinal' ,id ,producto);
-        const response = {
-            status: true,
-            img: imagen,
-        };
-
-        return res.status(200).json(response);
     } catch (error) {
         return res.status(500).send(error);
     }
@@ -179,7 +184,7 @@ router.post('/productoFinal/post/', async (req, res) => {
 //Actualizar Producto
 router.put('/productoFinal/put/:id', async (req, res) => {
     try {
-        const { id, nombre, img, materiaPrima, categoriaId, categoriaIdOld, status } = req.body;
+        const { id, nombre, presentacion, img, materiaPrima, categoriaId, categoriaIdOld, status } = req.body;
         const refMateriaPrima = db.doc('categoriaProductoSemifinal/'+materiaPrima.categoria+'/productoSemifinal/'+materiaPrima.id);
         let producto;
         let imagen;
@@ -188,26 +193,25 @@ router.put('/productoFinal/put/:id', async (req, res) => {
             idOld : req.params.id,
             id : id,
         }
+
+        producto = {
+            nombre:nombre,
+            presentacion: presentacion,
+            materiaPrima: refMateriaPrima,
+        }
+
         if(status){ //verifica si existo alguna imagen
             let urlImg = await functionStorage.updateImage(img,'productoFinal/'+nombre+'/',nombre);
             imagen = {
                 url:urlImg.url,
                 name:urlImg.reference,
             }
-            producto = {
-                nombre:nombre,
-                img:imagen,
-                materiaPrima: refMateriaPrima,
-            }
+            producto['img']= imagen;
         }else{
             imagen = img;
-            producto = {
-                nombre:nombre,
-                img:imagen,
-                materiaPrima: refMateriaPrima,
-            }
+            producto['img']= imagen;
         }
-        
+
         const categoria = {
             id : categoriaId,
             idOld : categoriaIdOld,

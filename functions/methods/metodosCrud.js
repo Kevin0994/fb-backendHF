@@ -6,8 +6,47 @@ const FieldValue = admin.firestore.FieldValue;
 
 const db = admin.firestore();
 
-async function insertarDocumento(coleccion,data){
-    await db.collection(coleccion).doc().create(data);
+async function getProductosID(materiaPrima){
+
+    await Promise.all(materiaPrima.map(async function(doc,index,array){
+        let segments = doc.id._path.segments;
+        let query;
+        let querySnapshot;
+        if(segments[0] === 'listaCosechas'){
+            query = db.collection('listaCosechas').doc(segments[1]);
+            querySnapshot = await query.get();
+            if (querySnapshot.exists) {
+                array[index]['nombre'] = querySnapshot.data().nombre;
+            }else{
+                array[index]['nombre']='no encontrado';
+            }
+        }
+
+        if(segments[0] === 'categoriaProductoSemifinal'){
+            query = db.collection('categoriaProductoSemifinal').doc(segments[1]).collection('productoSemifinal').doc(segments[3]);
+            querySnapshot = await query.get();
+            if (querySnapshot.exists) {
+                array[index]['nombre'] = querySnapshot.data().nombre;
+            }else{
+                array[index]['nombre']='no encontrado';
+            }
+
+        }
+
+        if(segments[0] === 'categoriaProductoFinal'){
+            query = db.collection('categoriaProductoFinal').doc(segments[1]).collection('productoFinal').doc(segments[3]);
+            querySnapshot = await query.get();
+            if (querySnapshot.exists) {
+                array[index]['nombre'] = querySnapshot.data().nombre;
+            }else{
+                array[index]['nombre']='no encontrado';
+            }
+
+        }
+    }))
+
+    return materiaPrima;
+
 }
 
 async function getAlimentoProductos(){
@@ -64,6 +103,10 @@ async function getAlimentoProductos(){
     return response;
 }
 
+async function insertarDocumento(coleccion,data){
+    await db.collection(coleccion).doc().create(data);
+}
+
 async function insertarDocumentoId(coleccion,id,data){
     console.log(data);
     await db.collection(coleccion).doc(id).create(data);
@@ -79,4 +122,4 @@ async function deleteDocumentoId(coleccion,id){
 }
 
 
-module.exports = { insertarDocumento, insertarDocumentoId, editarDocumentoId, deleteDocumentoId, getAlimentoProductos };
+module.exports = { getProductosID, insertarDocumento, insertarDocumentoId, editarDocumentoId, deleteDocumentoId, getAlimentoProductos };

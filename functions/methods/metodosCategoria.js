@@ -38,6 +38,7 @@ async function obtenerCategorias(collecion,subcollecion){
     return response;
 };
 
+
 async function editarCategoria(collecion,subcollecion,idOld,id,data){
 
     const queryCategoria = db.collection(collecion).doc(idOld);
@@ -120,23 +121,23 @@ async function obtenerProductos(collecion, subcollecion){
         let productos = await querySubcollection.get();
         if(productos.docs.length != 0){
             productos.docs.map(function (producto){
-                let productoRef;
-                if(subcollecion === 'productoSemifinal'){
-                    productoRef = producto.data().materiaPrima._path.segments[1];
-                }
-                if(subcollecion === 'productoFinal'){
-                    productoRef = {
-                        categoria: producto.data().materiaPrima._path.segments[1],
-                        producto:  producto.data().materiaPrima._path.segments[3]
+                /* let productoRef = Array();
+                producto.data().materiaPrima.map(function (doc){
+                    if(doc._path.segments.length < 3){
+                        productoRef.push(doc._path.segments[1]);
                     }
-                }
+                    if(doc._path.segments.length > 2){
+                        productoRef.push(doc._path.segments[3]);
+                    }
+                }); */
                 document = {
                     id: producto.id,
                     categoriaId: categoria.id,
                     categoria: categoria.data().nombre,
                     nombre: producto.data().nombre,
+                    presentacion: producto.data().presentacion,
                     img: producto.data().img,
-                    materiaPrima: productoRef, //reorganizamos el array de referencia que nos da firebase para que solo entrege el id de la materia prima
+                    materiaPrima: producto.data().materiaPrima, //reorganizamos el array de referencia que nos da firebase para que solo entrege el id de la materia prima
                 }
                 response.push(document);
             })
@@ -159,28 +160,29 @@ async function obtenerProductos(collecion, subcollecion){
 //Obtener productos por categoria
 async function getProductosPorCategoria(collecion,subcollecion,tabla,id){
 
-    const query = db.collection(collecion).doc(id).collection(subcollecion);
-    const querySnapshot = await query.get();
-    const docs = querySnapshot.docs;
+    const queryCategoria = db.collection(collecion).doc(id);
+    const querySnapshotCategoria = await queryCategoria.get();
+    const queryProducto = queryCategoria.collection(subcollecion);
+    const querySnapshotProducto = await queryProducto.get();
+    const docs = querySnapshotProducto.docs;
     let response = await Promise.all(docs.map(async function (productos){
         if(tabla === 'Semi'){
-            categoria = await db.collection('categoriaProductoSemifinal').doc(productos._ref._path.segments[1]).get();
-            producto = productos.data().materiaPrima._path.segments[1];
+            //producto = productos.data().materiaPrima._path.segments[1];
         }
         if(tabla === 'Final'){
-            categoria = await db.collection('categoriaProductoFinal').doc(productos._ref._path.segments[1]).get();
-            producto = {
+           /*  producto = {
                 categoria: productos.data().materiaPrima._path.segments[1],
                 producto:  productos.data().materiaPrima._path.segments[3]
-            }
+            }  */
         }
         document = {
             id: productos.id,
             img: productos.data().img,
-            categoriaId: productos._ref._path.segments[1],
-            categoria: categoria.data().nombre,
+            categoriaId: querySnapshotCategoria.id,
+            categoria: querySnapshotCategoria.data().nombre,
             nombre: productos.data().nombre,
-            materiaPrima: producto,
+            presentacion: productos.data().presentacion,
+            materiaPrima: productos.data().materiaPrima,
         }
         return document;
     }));
@@ -212,7 +214,54 @@ async function getProducto(collecion,subcollecion,idCategoria,id){
     return response;
 };
 
+//validar Materia Prima
+async function validarMateriaPrima(array){
+    let query;
+    let doc;
+    let response = Array();
 
+    await Promise.all(array.map(async function(file){
+        query = db.collection('listaCosechas').doc(file.id);
+        doc = await query.get();
+            if (doc.exists) {
+                let document = {
+                    id:db.doc('listaCosechas/'+file.id),
+                    peso: file.peso,
+                }
+                response.push(document);
+                return;
+            }
+        query = db.collectionGroup('productoSemifinal').where('nombre' , '==', file.nombre);
+        doc = await query.get();
+        doc.forEach(docSemi => {
+                if(docSemi.id === file.id){
+                    let document = {
+                        id:db.doc('categoriaProductoSemifinal/'+docSemi._ref._path.segments[1]+'/productoSemifinal/'+file.id),
+                        peso: file.peso,
+                    }
+                    response.push(document);
+                    return;
+                }
+        });
+        query = db.collectionGroup('productoFinal').where('nombre' , '==', file.nombre);
+        doc = await query.get();
+        doc.forEach(docSemi => {
+                if(docSemi.id === file.id){
+                    let document = {
+                        id:db.doc('categoriaProductoFinal/'+docSemi._ref._path.segments[1]+'/productoFinal/'+file.id),
+                        peso: file.peso,
+                    }
+                    response.push(document);
+                    return;
+                }
+        });
+    }))
+
+    return response;
+}
+
+
+//Insertar productos
 async function insertarProductos(collecion,idCategoria,subcollecion,id,data){
 
     const query = db.collection(collecion).doc(idCategoria);
@@ -232,7 +281,11 @@ async function ActualizarProductoSemi(collecion,categoria, subcollecion, documen
 
 //Eiminar un producto de una categoria
 async function DeleteProducto(collecion,categoria, subcollecion, id,){
-    await db.collection(collecion).doc(categoria).collection(subcollecion).doc(id).delete();
+
+    const queryRef = db.collection(collecion).doc(categoria).collection(subcollecion).doc(id);
+    const refImg = await queryRef.get();
+    await functionStorage.deleteImage(refImg.data().img.name);
+    await queryRef.delete();
 }
 
 module.exports = { obtenerCategorias,
@@ -240,6 +293,7 @@ module.exports = { obtenerCategorias,
     deleteCategoria,
     obtenerProductos,
     getProducto,
+    validarMateriaPrima,
     insertarProductos,
     ActualizarProductoSemi,
     getProductosPorCategoria,
