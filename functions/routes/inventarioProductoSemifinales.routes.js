@@ -43,17 +43,20 @@ router.get('/inventarioProSemi/terminado/documents', async (req, res) => {
 
 router.post('/inventarioProductoSemifinal/post', async (req, res) => {
     try {
-        const { codigo, nombre_mp, nombre, lote_mp, lote, peso_mp, n_proceso, fechaEntrada, responsable, estado } = req.body;
+        const { codigo, materiaPrima, nombre, lote_mp, lote, n_proceso, fechaEntrada, responsable, estado } = req.body;
+
+        let refDocument = materiaPrima.map(function(doc){
+            return db.doc(doc._path.segments[0]+'/'+doc._path.segments[1]);
+        })
 
         const producto = {
             codigo : codigo,
             nombre: nombre,
-            nombreMp: nombre_mp,
+            materiaPrima: refDocument,
             lote: lote,
             stock: 0,
         }
         const ingreso = {
-            pesoMp: peso_mp,
             loteMp: lote_mp,
             fechaEntrada: Timestamp.fromDate(new Date(fechaEntrada)),
             responsable: responsable,

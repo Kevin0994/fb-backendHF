@@ -103,6 +103,17 @@ async function getAlimentoProductos(){
     return response;
 }
 
+async function obtenerAlimentos(coleccion){
+    let query = db.collection(coleccion);
+    let querySnapshot = await query.get();
+    let response = querySnapshot.docs.map(doc =>({
+        id: doc.id,
+        nombre: doc.data().nombre,
+    }))
+
+    return response;
+}
+
 async function insertarDocumento(coleccion,data){
     await db.collection(coleccion).doc().create(data);
 }
@@ -122,4 +133,4 @@ async function deleteDocumentoId(coleccion,id){
 }
 
 
-module.exports = { getProductosID, insertarDocumento, insertarDocumentoId, editarDocumentoId, deleteDocumentoId, getAlimentoProductos };
+module.exports = { getProductosID, insertarDocumento, insertarDocumentoId, editarDocumentoId, deleteDocumentoId, obtenerAlimentos, getAlimentoProductos };

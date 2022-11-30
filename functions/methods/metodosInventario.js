@@ -10,6 +10,7 @@ async function getInventarioSemifinalProcesos(coleccion,estado){
     const query = db.collection(coleccion);
     const querySnapshot = await query.get();
     const docs = querySnapshot.docs;
+    let peso = 0;
     let response = Array();
 
     if(estado === 'En proceso'){
@@ -19,6 +20,9 @@ async function getInventarioSemifinalProcesos(coleccion,estado){
             if(ingresos.docs.length != 0){
                 ingresos.docs.map(function (ingreso){
                     let fechaFormat = ingreso.data().fechaEntrada.toDate();
+                    ingreso.data().loteMp.forEach(function(doc) { //lote materia prima
+                        peso += doc.ingreso;
+                    }),
                     document = {
                         loteMp_st: ingreso.data().loteMp.map(function(doc) { //lote materia prima
                             cadena = doc.lote.toString()+ ' ';
@@ -29,14 +33,15 @@ async function getInventarioSemifinalProcesos(coleccion,estado){
                         codigo: producto.data().codigo,
                         id: ingreso.id, //numero de proceso
                         stock: producto.data().stock,
-                        nombreMp:producto.data().nombreMp, //nombre matria prima
+                        materiaPrima:producto.data().materiaPrima, //nombre matria prima
+                        pesoMp: peso,//peso de la materiaPrima
                         nombre: producto.data().nombre, //nombre producto semifinal
                         lote: producto.data().lote, //lote producto semifinal
-                        pesoMp: ingreso.data().pesoMp, //peso materia prima
                         fechaEntrada: fechaFormat.toLocaleString('en-US', { timeZone: 'America/Guayaquil' }),
                         responsable: ingreso.data().responsable,
                         estado: ingreso.data().estado,
                     }
+                    peso = 0;
                     response.push(document);
                     return document;
                 })
@@ -51,6 +56,9 @@ async function getInventarioSemifinalProcesos(coleccion,estado){
                 ingresos.docs.map(function (ingreso){
                     let fechaFormatE = ingreso.data().fechaEntrada.toDate();
                     let fechaFormatS = ingreso.data().fechaSalida.toDate();
+                    ingreso.data().loteMp.forEach(function(doc) { //lote materia prima
+                        peso += doc.ingreso;
+                    }),
                     document = {
                         loteMp_st: ingreso.data().loteMp.map(function(doc) { //lote materia prima
                             cadena = doc.lote.toString()+ ' ';
@@ -61,23 +69,26 @@ async function getInventarioSemifinalProcesos(coleccion,estado){
                         codigo: producto.data().codigo,
                         id: ingreso.id, //numero de proceso
                         stock: producto.data().stock,
-                        nombreMp:producto.data().nombreMp, //nombre matria prima
+                        materiaPrima:producto.data().materiaPrima, //nombre matria prima
                         nombre: producto.data().nombre, //nombre producto semifinal
                         lote: producto.data().lote, //lote producto semifinal
-                        pesoMp: ingreso.data().pesoMp, //peso materia prima
+                        pesoMp: peso, //peso materia prima
                         fechaEntrada: fechaFormatE.toLocaleString('en-US', { timeZone: 'America/Guayaquil' }),
                         fechaSalida: fechaFormatS.toLocaleString('en-US', { timeZone: 'America/Guayaquil' }),
                         unidades: ingreso.data().unidades,
                         pesoFinal: ingreso.data().pesoFinal,
+                        conversion: ingreso.data().conversion,
                         responsable: ingreso.data().responsable,
                         estado: ingreso.data().estado,
                     }
+                    peso = 0;
                     response.push(document);
                     return document;
                 })
             }
         }))
     }
+
 
    if(response.length != 0){
     response.sort(function(a, b){
@@ -89,7 +100,8 @@ async function getInventarioSemifinalProcesos(coleccion,estado){
                 return 0
             }
         })
-    } 
+    }
+    
     return response;
 }
 
@@ -103,7 +115,7 @@ async function getInventarioProductos(coleccion){
         id: doc.id,
         codigo: doc.data().codigo,
         nombre: doc.data().nombre,
-        nombreMp: doc.data().nombreMp,
+        materiaPrima: doc.data().materiaPrima,
         lote:  doc.data().lote,
         stock: doc.data().stock,
     }))
@@ -222,9 +234,8 @@ async function validateStock(collecion,name,peso){
     const nombre = name;
     let ingreso = peso;
     let total = 0;
-    let status = 500;
-    const resultado= Array();
-    const response= Array();
+    let resultado= Array();
+    let response= Array();
     const doc = db.collection(collecion).where("nombre", "==", nombre);
     const cosecha = await doc.get();
     const docs = cosecha.docs;
@@ -234,8 +245,8 @@ async function validateStock(collecion,name,peso){
             stock : ingreso,
             status : 500
         }
-        response.push(document);
-        return
+        return document;
+        
     }
     docs.map(function(doc){
         if(doc.data().stock != 0){
@@ -268,35 +279,36 @@ async function validateStock(collecion,name,peso){
             if(ingreso <= total){
                 if(doc.stock >= ingreso){
                     document={
-                        id: doc.nombre,
+                        id: doc.id,
+                        nombre: doc.nombre,
+                        collecion: collecion,
                         lote: doc.lote,
-                        salida: ingreso,
-                    };
-                    response.push(document);
-                    db.collection(collecion).doc(doc.id).update({
+                        ingreso: ingreso,
                         stock: doc.stock - ingreso,
-                    })
-                    status = 200;
+                        status : 200
+                    };
+
+                    response.push(document);
                     return false;
                 }else{
                     document={
-                        id: doc.nombre,
+                        id: doc.id,
+                        nombre: doc.nombre,
+                        collecion: collecion,
                         lote: doc.lote,
-                        salida: doc.stock,
+                        ingreso: doc.stock,
+                        stock: 0,
+                        status : 200
                     };
 
-                    db.collection(collecion).doc(doc.id).update({
-                        stock: 0,
-                    })
                     ingreso -= doc.stock
                     response.push(document);
-                    status = 200;
+
                     return true;
                 }
             }else{
                 document = {
-                    messege : 'stock insuficiente',
-                    stock : ingreso - total,
+                    messege : 'stock insuficiente de ['+ nombre +'] - cantidad faltante: '+ (ingreso - total).toString(),
                     status : 500
                 }
 
@@ -307,8 +319,7 @@ async function validateStock(collecion,name,peso){
         })
     }else{
         document = {
-            messege : 'stock insuficiente',
-            stock : ingreso,
+            messege : 'stock insuficiente de ['+ nombre +'] - cantidad faltante: '+ (ingreso).toString(),
             status : 500
         }
 
@@ -322,6 +333,28 @@ async function validateStock(collecion,name,peso){
 }
 
 
+async function descontarStock(materiaPrima){
+
+    let refDoc;
+    let response = Array();
+
+    await Promise.all(materiaPrima.map(async function(doc){
+        refDoc = db.collection(doc.collecion).doc(doc.id);
+        await refDoc.update({
+            stock: doc.stock,
+        })
+        document = {
+            id: doc.collecion+'/'+doc.id,
+            nombre: doc.nombre,
+            lote: doc.lote,
+            ingreso: doc.ingreso,
+        }
+        response.push(document);
+    }))
+
+    return response;
+}
+
 module.exports = { getInventarioSemifinalProcesos, 
     postInventarioSemifinalProceso, 
     putInventarioSemifinalProceso, 
@@ -329,4 +362,5 @@ module.exports = { getInventarioSemifinalProcesos,
     getInventarioFinal ,
     postInventarioProductoFinal,
     validateStock,
+    descontarStock,
  };

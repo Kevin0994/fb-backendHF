@@ -12,7 +12,7 @@ const db = admin.firestore();
 router.get('/alimentos/documents', async (req, res) => {
     try {
 
-        let data = await functionsCrud.getAlimentoProductos();
+        let data = await functionsCrud.obtenerAlimentos('listaCosechas');
 
         return res.status(200).json(data);
     } catch (error) {
@@ -87,53 +87,89 @@ router.delete('/alimentos/delete/:id', async (req, res) => {
     }
 });
 
+//Obtiene la informacion de la lista de coasechas, productosSemifinales y productosFinales
+router.get('/productos/alldocuments', async (req, res) => {
+    try {
+
+        let data = await functionsCrud.getAlimentoProductos();
+
+        return res.status(200).json(data);
+    } catch (error) {
+        return res.status(500).json();
+    }
+});
+
 
 //Valida si hay stock para fabricar un producto Final y actualiza el stock del producto semifinal a usar para la fabricacion
 router.post('/inventarioProducto/stock/', async (req, res) => {
     try {
         const materiaPrima = req.body;
-        let reference;
         let response = Array();
-        let collecion;
-        let nameProducto;
-        let ingreso;
-        let resultado;
 
         await Promise.all(materiaPrima.map(async function(doc){
-            reference = doc.id._path.segments[0];
+            let reference=doc.id._path.segments[0];;
+            let collecion='';
+            let nameProducto='';
+            let ingreso=0;
 
             if(reference === 'listaCosechas'){
-
+                let resultado;
                 collecion = 'cosechas';
                 nameProducto = doc.nombre;
                 ingreso = doc.peso;
                 resultado = await functionsInventario.validateStock(collecion,nameProducto,ingreso);
-                response.push(resultado);
+                resultado = resultado.filter(e => e != null);
+                resultado.map(function(result){
+                    if(result != null){
+                        if(result.status == 500){
+                            return res.status(500).send(result);
+                        }
+                        response.push(result);
+                        return;
+                    }
+                })
 
             }
             if(reference === 'categoriaProductoSemifinal'){
-
+                let resultado;
                 collecion = 'inventarioProductoSemifinal';
                 nameProducto = doc.nombre;
                 ingreso = doc.peso;
                 resultado = await functionsInventario.validateStock(collecion,nameProducto,ingreso);
-                response.push(resultado);
+                resultado = resultado.filter(e => e != null);
+                resultado.map(function(result){
+                    if(result != null){
+                        if(result.status == 500){
+                            return res.status(500).send(result);
+                        }
+                        response.push(result);
+                        return;
+                    }
+                })
             }
             if(reference === 'categoriaProductoFinal'){
-
+                let resultado;
                 collecion = 'inventarioProductoFinal';
                 nameProducto = doc.nombre;
                 ingreso = doc.peso;
                 resultado = await functionsInventario.validateStock(collecion,nameProducto,ingreso);
-                response.push(resultado);
+                resultado = resultado.filter(e => e != null);
+                resultado.map(function(result){
+                    if(result != null){
+                        if(result.status == 500){
+                            return res.status(500).send(result);
+                        }
+                        response.push(result);
+                        return;
+                    }
+                })
             }
-        })) 
+        }))
 
-        if(response.length != 0){
-            return res.status(200).send(response);
-        }else{
-            return res.status(500).send('no se encontro ninguna materia Prima relacionada');
-        }
+
+        response = await functionsInventario.descontarStock(response);
+
+        return res.status(200).send(response);
 
     } catch (error) {
         return res.status(500).send(error);
