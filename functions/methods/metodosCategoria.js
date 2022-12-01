@@ -215,7 +215,7 @@ async function getProducto(collecion,subcollecion,idCategoria,id){
 };
 
 //validar Materia Prima
-async function validarMateriaPrima(array){
+async function validarMateriaPrimaSemi(array){
     let query;
     let doc;
     let response = Array();
@@ -260,6 +260,58 @@ async function validarMateriaPrima(array){
     return response;
 }
 
+async function validarMateriaPrimaFinal(array){
+    let query;
+    let response = Array();
+
+    await Promise.all(array.map(async function(file){
+        let ref = {
+            presentacion: file.presentacion,
+            materiaPrima: Array(),
+        };
+        await Promise.all(file.materiaPrima.map(async function(refdoc){
+            query = db.collection('listaCosechas').doc(refdoc.id);
+            doc = await query.get();
+                if (doc.exists) {
+                    let document = {
+                        id:db.doc('listaCosechas/'+refdoc.id),
+                        peso: refdoc.peso,
+                    }
+                    ref['materiaPrima'].push(document);
+                    return;
+                }
+            query = db.collectionGroup('productoSemifinal').where('nombre' , '==', refdoc.nombre);
+            doc = await query.get();
+            doc.forEach(docSemi => {
+                    if(docSemi.id === refdoc.id){
+                        let document = {
+                            id:db.doc('categoriaProductoSemifinal/'+docSemi._ref._path.segments[1]+'/productoSemifinal/'+refdoc.id),
+                            peso: refdoc.peso,
+                        }
+                        ref['materiaPrima'].push(document);
+                        return;
+                    }
+            });
+            query = db.collectionGroup('productoFinal').where('nombre' , '==', refdoc.nombre);
+            doc = await query.get();
+            doc.forEach(docFinal => {
+                    if(docFinal.id === refdoc.id){
+                        let document = {
+                            id:db.doc('categoriaProductoFinal/'+docFinal._ref._path.segments[1]+'/productoFinal/'+refdoc.id),
+                            peso: refdoc.peso,
+                        }
+                        ref['materiaPrima'].push(document);
+                        return;
+                    }
+            });
+        }))
+
+        response.push(ref);
+    }))
+
+    return response;
+}
+
 
 //Insertar productos
 async function insertarProductos(collecion,idCategoria,subcollecion,id,data){
@@ -293,7 +345,8 @@ module.exports = { obtenerCategorias,
     deleteCategoria,
     obtenerProductos,
     getProducto,
-    validarMateriaPrima,
+    validarMateriaPrimaSemi,
+    validarMateriaPrimaFinal,
     insertarProductos,
     ActualizarProductoSemi,
     getProductosPorCategoria,

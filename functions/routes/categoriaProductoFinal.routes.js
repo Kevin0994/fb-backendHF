@@ -138,11 +138,12 @@ router.get('/productoFinal/documents/:id', async (req, res) => {
 //Agregar Productos Finales
 router.post('/productoFinal/post/', async (req, res) => {
     try {
-        const { id, categoriaId, nombre, presentacion, img, materiaPrima, status } = req.body;
+        const { id, categoriaId, nombre, img, materiaPrima, status } = req.body;
         let producto;
         let imagen;
 
-        let refMateriaPrima =  await functionsCategoria.validarMateriaPrima(materiaPrima);
+        let refMateriaPrima =  await functionsCategoria.validarMateriaPrimaFinal(materiaPrima);
+
 
         if(refMateriaPrima.length != 0){
             producto = {

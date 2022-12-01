@@ -152,7 +152,7 @@ router.post('/productoSemi/post/', async (req, res) => {
         let producto;
         let imagen;
 
-        let refMateriaPrima =  await functionsCategoria.validarMateriaPrima(materiaPrima);
+        let refMateriaPrima =  await functionsCategoria.validarMateriaPrimaSemi(materiaPrima);
 
         if(refMateriaPrima.length != 0){
             producto = {
