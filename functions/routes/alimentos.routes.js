@@ -36,10 +36,19 @@ router.get('/alimentos/documents/:id', (req, res) => {
 router.post('/alimentos/validate/get', async (req, res) => {
     try {
         const materiaPrima  = req.body;
-        let response = Array();
-        response = await functionsCrud.getProductosID(materiaPrima); 
 
-        return res.status(200).json(response);
+        let response = Array();
+
+        if(materiaPrima[0].id != undefined){
+            response = await functionsCrud.getNameProductosMP(materiaPrima);
+        }
+
+        if(materiaPrima[0].presentacion != undefined){
+            response = await functionsCrud.getNameProductosReceta(materiaPrima);
+        }
+
+
+        return res.status(200).json(materiaPrima);
     } catch (error) {
         return res.status(500).send(error);
     }
@@ -107,7 +116,7 @@ router.post('/inventarioProducto/stock/', async (req, res) => {
         let response = Array();
 
         await Promise.all(materiaPrima.map(async function(doc){
-            let reference=doc.id._path.segments[0];;
+            let reference=doc.id._path.segments[0];
             let collecion='';
             let nameProducto='';
             let ingreso=0;

@@ -127,7 +127,7 @@ router.get('/productoFinal/documents', async (req, res) => {
 router.get('/productoFinal/documents/:id', async (req, res) => {
     try {
         const id = req.params.id;
-        let data = await functionsCategoria.getProductosPorCategoria('categoriaProductoFinal', 'productoFinal','Final' ,id);
+        let data = await functionsCategoria.getProductosPorCategoria('categoriaProductoFinal', 'productoFinal',id);
         return res.status(200).json(data);
 
     } catch (error) {
@@ -138,18 +138,17 @@ router.get('/productoFinal/documents/:id', async (req, res) => {
 //Agregar Productos Finales
 router.post('/productoFinal/post/', async (req, res) => {
     try {
-        const { id, categoriaId, nombre, img, materiaPrima, status } = req.body;
+        const { id, categoriaId, nombre, img, receta, status } = req.body;
         let producto;
         let imagen;
 
-        let refMateriaPrima =  await functionsCategoria.validarMateriaPrimaFinal(materiaPrima);
+        let refMateriaPrima =  await functionsCategoria.validarMateriaPrimaFinal(receta);
 
 
         if(refMateriaPrima.length != 0){
             producto = {
                 nombre:nombre,
-                presentacion: presentacion,
-                materiaPrima: refMateriaPrima,
+                receta: refMateriaPrima,
             }
     
             if(status){
@@ -175,7 +174,9 @@ router.post('/productoFinal/post/', async (req, res) => {
             return res.status(200).json(response);
         }else{
             return res.status(500).send('No se encontro ningun documento referente a la materia prima que se quizo ingresar');
-        }
+        } 
+
+        return res.status(200).json(refMateriaPrima);
 
     } catch (error) {
         return res.status(500).send(error);
@@ -198,7 +199,7 @@ router.put('/productoFinal/put/:id', async (req, res) => {
         producto = {
             nombre:nombre,
             presentacion: presentacion,
-            materiaPrima: refMateriaPrima,
+            receta: refMateriaPrima,
         }
 
         if(status){ //verifica si existo alguna imagen

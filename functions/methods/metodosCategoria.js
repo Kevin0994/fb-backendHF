@@ -121,25 +121,32 @@ async function obtenerProductos(collecion, subcollecion){
         let productos = await querySubcollection.get();
         if(productos.docs.length != 0){
             productos.docs.map(function (producto){
-                /* let productoRef = Array();
-                producto.data().materiaPrima.map(function (doc){
-                    if(doc._path.segments.length < 3){
-                        productoRef.push(doc._path.segments[1]);
+                
+                if(subcollecion === 'productoFinal'){
+                    document = {
+                        id: producto.id,
+                        categoriaId: categoria.id,
+                        categoria: categoria.data().nombre,
+                        nombre: producto.data().nombre,
+                        img: producto.data().img,
+                        receta: producto.data().receta,
                     }
-                    if(doc._path.segments.length > 2){
-                        productoRef.push(doc._path.segments[3]);
-                    }
-                }); */
-                document = {
-                    id: producto.id,
-                    categoriaId: categoria.id,
-                    categoria: categoria.data().nombre,
-                    nombre: producto.data().nombre,
-                    presentacion: producto.data().presentacion,
-                    img: producto.data().img,
-                    materiaPrima: producto.data().materiaPrima, //reorganizamos el array de referencia que nos da firebase para que solo entrege el id de la materia prima
+                    response.push(document);
+                    return;
                 }
-                response.push(document);
+
+                if(subcollecion === 'productoSemifinal'){
+                    document = {
+                        id: producto.id,
+                        categoriaId: categoria.id,
+                        categoria: categoria.data().nombre,
+                        nombre: producto.data().nombre,
+                        img: producto.data().img,
+                        materiaPrima: producto.data().materiaPrima,
+                    }
+                    response.push(document);
+                    return;
+                }
             })
         }
     }))
@@ -158,7 +165,7 @@ async function obtenerProductos(collecion, subcollecion){
 };
 
 //Obtener productos por categoria
-async function getProductosPorCategoria(collecion,subcollecion,tabla,id){
+async function getProductosPorCategoria(collecion,subcollecion,id){
 
     const queryCategoria = db.collection(collecion).doc(id);
     const querySnapshotCategoria = await queryCategoria.get();
@@ -166,25 +173,29 @@ async function getProductosPorCategoria(collecion,subcollecion,tabla,id){
     const querySnapshotProducto = await queryProducto.get();
     const docs = querySnapshotProducto.docs;
     let response = await Promise.all(docs.map(async function (productos){
-        if(tabla === 'Semi'){
-            //producto = productos.data().materiaPrima._path.segments[1];
+        if(subcollecion === 'productoFinal'){
+            document = {
+                id: productos.id,
+                img: productos.data().img,
+                categoriaId: querySnapshotCategoria.id,
+                categoria: querySnapshotCategoria.data().nombre,
+                nombre: productos.data().nombre,
+                receta: productos.data().receta,
+            }
+            return document;
         }
-        if(tabla === 'Final'){
-           /*  producto = {
-                categoria: productos.data().materiaPrima._path.segments[1],
-                producto:  productos.data().materiaPrima._path.segments[3]
-            }  */
+        if(subcollecion === 'productoSemifinal'){
+            document = {
+                id: productos.id,
+                img: productos.data().img,
+                categoriaId: querySnapshotCategoria.id,
+                categoria: querySnapshotCategoria.data().nombre,
+                nombre: productos.data().nombre,
+                materiaPrima: productos.data().materiaPrima,
+            }
+            return document;
         }
-        document = {
-            id: productos.id,
-            img: productos.data().img,
-            categoriaId: querySnapshotCategoria.id,
-            categoria: querySnapshotCategoria.data().nombre,
-            nombre: productos.data().nombre,
-            presentacion: productos.data().presentacion,
-            materiaPrima: productos.data().materiaPrima,
-        }
-        return document;
+        
     }));
 
 

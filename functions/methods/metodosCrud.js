@@ -6,7 +6,7 @@ const FieldValue = admin.firestore.FieldValue;
 
 const db = admin.firestore();
 
-async function getProductosID(materiaPrima){
+async function getNameProductosMP(materiaPrima){
 
     await Promise.all(materiaPrima.map(async function(doc,index,array){
         let segments = doc.id._path.segments;
@@ -48,6 +48,56 @@ async function getProductosID(materiaPrima){
     return materiaPrima;
 
 }
+
+
+async function getNameProductosReceta(materiaPrima){
+
+    await Promise.all(materiaPrima.map(async function(file){
+
+        await Promise.all(file.materiaPrima.map(async function(doc,index,materiaPrima){
+
+            let segments = doc.id._path.segments;
+            let query;
+            let querySnapshot;
+            if(segments[0] === 'listaCosechas'){
+                query = db.collection('listaCosechas').doc(segments[1]);
+                querySnapshot = await query.get();
+                if (querySnapshot.exists) {
+                    materiaPrima[index]['nombre'] = querySnapshot.data().nombre;
+                }else{
+                    materiaPrima[index]['nombre']='no encontrado';
+                }
+            }
+
+            if(segments[0] === 'categoriaProductoSemifinal'){
+                query = db.collection('categoriaProductoSemifinal').doc(segments[1]).collection('productoSemifinal').doc(segments[3]);
+                querySnapshot = await query.get();
+                if (querySnapshot.exists) {
+                    materiaPrima[index]['nombre'] = querySnapshot.data().nombre;
+                }else{
+                    materiaPrima[index]['nombre']='no encontrado';
+                }
+
+            }
+
+            if(segments[0] === 'categoriaProductoFinal'){
+                query = db.collection('categoriaProductoFinal').doc(segments[1]).collection('productoFinal').doc(segments[3]);
+                querySnapshot = await query.get();
+                if (querySnapshot.exists) {
+                    materiaPrima[index]['nombre'] = querySnapshot.data().nombre;
+                }else{
+                    materiaPrima[index]['nombre']='no encontrado';
+                }
+
+            }
+        }))
+        
+    }))
+
+    return materiaPrima;
+
+}
+
 
 async function getAlimentoProductos(){
 
@@ -133,4 +183,4 @@ async function deleteDocumentoId(coleccion,id){
 }
 
 
-module.exports = { getProductosID, insertarDocumento, insertarDocumentoId, editarDocumentoId, deleteDocumentoId, obtenerAlimentos, getAlimentoProductos };
+module.exports = { getNameProductosMP, getNameProductosReceta, insertarDocumento, insertarDocumentoId, editarDocumentoId, deleteDocumentoId, obtenerAlimentos, getAlimentoProductos };

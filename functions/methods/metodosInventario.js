@@ -174,14 +174,14 @@ async function getInventarioFinal(coleccion){
                         codigo: producto.data().codigo,
                         id: ingreso.id, //numero de proceso
                         stock: producto.data().stock,
-                        nombreMp:producto.data().nombreMp, //nombre matria prima
+                        materiaPrima: producto.data().materiaPrima, //nombre matria prima
                         nombre: producto.data().nombre, //nombre producto semifinal
                         lote: producto.data().lote, //lote producto semifinal
-                        pesoMp: ingreso.data().pesoMp, //peso materia prima
                         fechaEntrada: fechaFormatE.toLocaleString('en-US', { timeZone: 'America/Guayaquil' }),
                         unidades: ingreso.data().unidades,
                         pesoFinal: ingreso.data().pesoFinal,
                         responsable: ingreso.data().responsable,
+                        conversion: ingreso.data().conversion,
                         estado: ingreso.data().estado,
                     }
                     response.push(document);
@@ -239,14 +239,14 @@ async function validateStock(collecion,name,peso){
     const doc = db.collection(collecion).where("nombre", "==", nombre);
     const cosecha = await doc.get();
     const docs = cosecha.docs;
-    if(docs.length == 0){
+    if(docs.length == undefined){
         let document = {
             messege : 'No se encontro la materiaPrima',
             stock : ingreso,
             status : 500
         }
         return document;
-        
+
     }
     docs.map(function(doc){
         if(doc.data().stock != 0){

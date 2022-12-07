@@ -123,7 +123,7 @@ router.get('/productoSemi/documents', async (req, res) => {
 router.get('/productoSemi/documents/:id', async (req, res) => {
     try {
         const id = req.params.id;
-        let data = await functionsCategoria.getProductosPorCategoria('categoriaProductoSemifinal','productoSemifinal','Semi',id);
+        let data = await functionsCategoria.getProductosPorCategoria('categoriaProductoSemifinal','productoSemifinal',id);
         return res.status(200).json(data);
 
     } catch (error) {
