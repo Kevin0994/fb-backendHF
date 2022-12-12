@@ -27,6 +27,7 @@ app.use(require('./routes/categoriaProductoFinal.routes'))
 app.use(require('./routes/inventarioProductoSemifinales.routes'))
 app.use(require('./routes/inventarioProductoFinales.routes'))
 app.use(require('./routes/alimentos.routes'))
+app.use(require('./routes/actividades.routes'))
 
 
 exports.app = functions.https.onRequest(app);
