@@ -191,46 +191,51 @@ router.post('/productoSemi/post/', async (req, res) => {
 //Actualizar Producto
 router.put('/productoSemi/put/:id', async (req, res) => {
     try {
-        const { id, nombre, img, materiaPrima, categoriaId, categoriaIdOld, status } = req.body;
+        const { id, nombre, img, materiaPrima, categoriaId, oldProduct, status } = req.body;
         let producto;
         let imagen;
 
-        const document = {
-            idOld : req.params.id,
-            id : id,
-        }
+        let refMateriaPrima =  await functionsCategoria.validarMateriaPrimaSemi(materiaPrima);
 
-        producto = {
-            nombre:nombre,
-            materiaPrima: db.doc('listaCosechas/'+materiaPrima),
-        }
-
-        if(status){ //verifica si existe alguna imagen
-            let urlImg = await functionStorage.updateImage(img,'productoSemifinal/'+nombre+'/',nombre);
-            imagen = {
-                url:urlImg.url,
-                name:urlImg.reference,
+        if(refMateriaPrima.length != 0){
+            const refDocument = {
+                idOld : req.params.id,
+                id : id,
+                categoriaId: categoriaId,
+                oldProduct: oldProduct
             }
 
-            producto['img']=imagen;
+            producto = {
+                nombre:nombre,
+                materiaPrima: refMateriaPrima,
+            }
+
+            if(status){
+                let urlImg = await functionStorage.updateImage(img,'productoSemifinal/'+nombre+'/',nombre);
+                imagen = {
+                    url:urlImg.url,
+                    name:urlImg.reference,
+                }
+
+                producto['img'] = imagen;
+            }else{
+                imagen = img;
+                producto['img'] = img;
+            }
+
+            await functionsCategoria.ActualizarProductoSemi('categoriaProductoSemifinal','productoSemifinal', refDocument ,producto);
+            const response = {
+                status: false,
+                img: imagen,
+                refMateriaPrima: refMateriaPrima,
+            };
+
+            return res.status(200).json(response);
 
         }else{
-            imagen = img;
-            producto['img']=imagen;
+            return res.status(500).send('No se encontro ningun documento referente a la materia prima que se quizo ingresar');
         }
 
-        const categoria = {
-            id : categoriaId,
-            idOld : categoriaIdOld,
-        }
-
-        await functionsCategoria.ActualizarProductoSemi('categoriaProductoSemifinal',categoria,'productoSemifinal', document ,producto);
-        const response = {
-            status: false,
-            img: imagen,
-        };
-
-        return res.status(200).json(response);
     } catch (error) {
         return res.status(500).send(error);
     }

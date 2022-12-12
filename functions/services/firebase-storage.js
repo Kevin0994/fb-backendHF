@@ -64,7 +64,7 @@ async function updateImage(img,directorio,nombreFile){
   if(!img.imgOld) return;
   const imagen = img;
   const fileOld = bucket.file(imagen.imgOld.name);
-  fileOld.exists().then((exists) => {
+  await fileOld.exists().then((exists) => {
     if (exists[0]) {
       console.log("File exists");
       fileOld.delete();

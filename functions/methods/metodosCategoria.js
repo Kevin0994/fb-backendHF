@@ -332,12 +332,33 @@ async function insertarProductos(collecion,idCategoria,subcollecion,id,data){
 }
 
 //Actualizar productos
-async function ActualizarProductoSemi(collecion,categoria, subcollecion, document,data){
+async function ActualizarProductoSemi(collecion, subcollecion, document,data){
 
     const query = db.collection(collecion);
 
-    if(document.idOld == document.id && categoria.idOld == categoria.id){
-        await query.doc(categoria.idOld).collection(subcollecion).doc(document.idOld).update(data);
+    if(document.idOld == document.id && document.categoriaId == document.oldProduct.categoriaId){
+
+        await query.doc(document.categoriaId).collection(subcollecion).doc(document.idOld).update(data);
+        return;
+    }
+
+    if(document.idOld != document.id && document.categoriaId == document.oldProduct.categoriaId){
+
+        await query.doc(document.categoriaId).collection(subcollecion).doc(document.idOld).delete();
+        await query.doc(document.categoriaId).collection(subcollecion).doc(document.id).create(data);
+        return;
+    }
+
+    if(document.idOld == document.id && document.categoriaId != document.oldProduct.categoriaId){
+        await query.doc(document.oldProduct.categoriaId).collection(subcollecion).doc(document.id).delete();
+        await query.doc(document.categoriaId).collection(subcollecion).doc(document.id).create(data);
+        return;
+    }
+
+    if(document.idOld != document.id && document.categoriaId != document.oldProduct.categoriaId){
+        await query.doc(document.oldProduct.categoriaId).collection(subcollecion).doc(document.idOld).delete();
+        await query.doc(document.categoriaId).collection(subcollecion).doc(document.id).create(data);
+        return;
     }
 
 }
