@@ -30,6 +30,17 @@ router.post('/actividades/post', async (req, res) => {
   }
 })
 
+router.put('/actividades/documents/:id', async (req, res) => {
+  try {
+      const doc = db.collection('actividades').doc(req.params.id);
+      await doc.update(req.body)
+      return res.status(200).json();
+  } catch (error) {
+      return res.status(500).send(error);
+  }
+});
+
+
 router.delete('/actividades/documents/:id', async (req, res) => {
   try {
       const doc = db.collection('actividades').doc(req.params.id);
