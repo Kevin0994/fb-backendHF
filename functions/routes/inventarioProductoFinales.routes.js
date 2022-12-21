@@ -1,5 +1,5 @@
 const functionsInventario = require('../methods/metodosInventario')
-
+const checkAuth = require('../middleware/checkAuth');
 const { Router } = require('express')
 const router = Router();
 
@@ -9,7 +9,7 @@ const db = admin.firestore();
 
 const Timestamp = admin.firestore.Timestamp;
 
-router.get('/inventarioProductoFinal/documents', async (req, res) => {
+router.get('/inventarioProductoFinal/documents', checkAuth, async (req, res) => {
     try {
 
         let data = await functionsInventario.getInventarioProductos('inventarioProductoFinal');
@@ -19,7 +19,7 @@ router.get('/inventarioProductoFinal/documents', async (req, res) => {
     }
 });
 
-router.get('/inventarioProductoFinal/all/documents', async (req, res) => {
+router.get('/inventarioProductoFinal/all/documents', checkAuth, async (req, res) => {
     try {
 
         let data = await functionsInventario.getInventarioFinal('inventarioProductoFinal');
@@ -29,7 +29,7 @@ router.get('/inventarioProductoFinal/all/documents', async (req, res) => {
     }
 });
 
-router.post('/inventarioProductoFinal/post', async (req, res) => {
+router.post('/inventarioProductoFinal/post', checkAuth, async (req, res) => {
     try {
         const { codigo, materiaPrima, nombre, lote_mp, lote, n_proceso, fechaEntrada, unidades, pesoFinal, responsable, conversion, estado } = req.body;
 

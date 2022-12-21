@@ -1,6 +1,6 @@
 const { Router } = require('express')
 const router = Router();
-
+const checkAuth = require('../middleware/checkAuth');
 const admin = require('firebase-admin')
 const FieldValue = admin.firestore.FieldValue;
 const Timestamp = admin.firestore.Timestamp;
@@ -9,7 +9,7 @@ const db = admin.firestore();
 
 
 //get de todos los documentos
-router.get('/cosechas/documents', async (req, res) => {
+router.get('/cosechas/documents', checkAuth, async (req, res) => {
     try {
         const query = db.collection('cosechas');
         const querySnapshot = await query.get();
@@ -40,7 +40,7 @@ router.get('/cosechas/documents', async (req, res) => {
 });
 
 //get de todos los documentos
-router.get('/cosechasHistorial/documents', async (req, res) => {
+router.get('/cosechasHistorial/documents', checkAuth, async (req, res) => {
     try {
         const query = db.collection('cosechas');
         const querySnapshot = await query.get();
@@ -77,7 +77,7 @@ router.get('/cosechasHistorial/documents', async (req, res) => {
 
 
 //Ingreso de cosechas completo
-router.post('/cosechas/post/:nombre/:lote', async (req, res) => {
+router.post('/cosechas/post/:nombre/:lote', checkAuth, async (req, res) => {
     try {
 
         const { stockN, nombreN, codigo, loteN, historial } = req.body;
@@ -234,7 +234,7 @@ router.post('/cosechas/put/:nombre/:lote', async (req, res) => {
 
 
 //Eliminar Historial
-router.post('/cosechaHistorial/delete/:id', async (req, res) => {
+router.post('/cosechaHistorial/delete/:id', checkAuth, async (req, res) => {
     try {
         const { stock, idHis, ingreso, fecha, responsable } = req.body;
         let fechaFormat = new Timestamp(fecha._seconds,fecha._nanoseconds)
@@ -254,7 +254,7 @@ router.post('/cosechaHistorial/delete/:id', async (req, res) => {
 });
 
 //Eliminar Cosechas
-router.delete('/cosechas/documents/:id', async (req, res) => {
+router.delete('/cosechas/documents/:id', checkAuth, async (req, res) => {
     try {
         const doc = db.collection('cosechas').doc(req.params.id);
         await doc.delete()
@@ -265,7 +265,7 @@ router.delete('/cosechas/documents/:id', async (req, res) => {
 });
 
 //Valida si exite stock para fabricar un producto semifinal y actualiza el stock de la casecha a usar para la fabricacion
-router.put('/stock/:nombre', (req, res) => {
+router.put('/stock/:nombre', checkAuth, (req, res) => {
     (async () => {
         try {
             const nombre = req.params.nombre;

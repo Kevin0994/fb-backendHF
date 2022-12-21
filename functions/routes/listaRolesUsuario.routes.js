@@ -1,11 +1,12 @@
 const { Router } = require('express')
 const router = Router();
 
-const admin = require('firebase-admin')
+const admin = require('firebase-admin');
+const checkAuth = require('../middleware/checkAuth');
 
 const db = admin.firestore()
 
-router.get('/listaRoles/documents', async (req, res) => {
+router.get('/listaRoles/documents', checkAuth, async (req, res) => {
     try {
 
         const query = db.collection('listaRolesUsuario');
