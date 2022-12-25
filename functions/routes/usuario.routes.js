@@ -148,13 +148,14 @@ router.post('/usuario/post', checkAuth,async (req, res) => {
 router.put('/usuario/documents/:id', checkAuth,async (req, res) => {
     try {
         const doc = db.collection('usuario').doc(req.params.id);
+        let passwordCrypt = await encryptPassword(req.body.password);
         await doc.update({
             nombres: req.body.nombres,
             apellidos: req.body.apellidos,
             email: req.body.email,
             userName: req.body.userName,
             rol: req.body.rol,
-            password: req.body.password,
+            password: passwordCrypt,
         })
         return res.status(200).json();
     } catch (error) {
