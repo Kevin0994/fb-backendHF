@@ -3,13 +3,14 @@ const functionsInventario = require('../methods/metodosInventario')
 const { Router } = require('express')
 const router = Router();
 
-const admin = require('firebase-admin')
+const admin = require('firebase-admin');
+const checkAuth = require('../middleware/checkAuth');
 
 const db = admin.firestore();
 
 const Timestamp = admin.firestore.Timestamp;
 
-router.get('/inventarioProSemi/documents', async (req, res) => {
+router.get('/inventarioProSemi/documents', checkAuth, async (req, res) => {
     try {
 
         let data = await functionsInventario.getInventarioProductos('inventarioProductoSemifinal');
@@ -19,7 +20,7 @@ router.get('/inventarioProSemi/documents', async (req, res) => {
     }
 });
 
-router.get('/inventarioProductoSemifinal/proceso/documents', async (req, res) => {
+router.get('/inventarioProductoSemifinal/proceso/documents', checkAuth, async (req, res) => {
     try {
 
         let data = await functionsInventario.getInventarioSemifinalProcesos('inventarioProductoSemifinal','En proceso');
@@ -30,7 +31,7 @@ router.get('/inventarioProductoSemifinal/proceso/documents', async (req, res) =>
     }
 });
 
-router.get('/inventarioProSemi/terminado/documents', async (req, res) => {
+router.get('/inventarioProSemi/terminado/documents', checkAuth, async (req, res) => {
     try {
 
         let data = await functionsInventario.getInventarioSemifinalProcesos('inventarioProductoSemifinal','Terminado');
@@ -41,7 +42,7 @@ router.get('/inventarioProSemi/terminado/documents', async (req, res) => {
 });
 
 
-router.post('/inventarioProductoSemifinal/post', async (req, res) => {
+router.post('/inventarioProductoSemifinal/post', checkAuth, async (req, res) => {
     try {
         const { codigo, materiaPrima, nombre, lote_mp, lote, n_proceso, fechaEntrada, responsable, estado } = req.body;
 
@@ -70,7 +71,7 @@ router.post('/inventarioProductoSemifinal/post', async (req, res) => {
 });
 
 
-router.put('/inventarioProductoSemifinales/put/:id', async (req, res) => {
+router.put('/inventarioProductoSemifinales/put/:id', checkAuth, async (req, res) => {
     try {
         const { idIngreso, fechaSalida, unidades, stock, pesoFinal, conversion } = req.body;
         const id = {

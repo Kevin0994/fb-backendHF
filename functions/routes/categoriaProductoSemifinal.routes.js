@@ -2,7 +2,7 @@
 const functionsCrud = require('../methods/metodosCrud')
 const functionsCategoria = require('../methods/metodosCategoria')
 const functionStorage = require('../services/firebase-storage')
-
+const checkAuth = require('../middleware/checkAuth');
 const { Router } = require('express')
 const router = Router();
 
@@ -11,7 +11,7 @@ const admin = require('firebase-admin')
 const db = admin.firestore();
 
 //obtener todas las categorias de los productos semifinales
-router.get('/categoriaProductoSemi/documents', async (req, res) => {
+router.get('/categoriaProductoSemi/documents', checkAuth, async (req, res) => {
     try {
         let data = await functionsCategoria.obtenerCategorias('categoriaProductoSemifinal','productoSemifinal');
         return res.status(200).json(data);
@@ -22,7 +22,7 @@ router.get('/categoriaProductoSemi/documents', async (req, res) => {
 });
 
 //insertar categoria de productos semifinales
-router.post('/categoriaProductoSemi/post' , async (req, res) => {
+router.post('/categoriaProductoSemi/post', checkAuth, async (req, res) => {
     try {
         const { id, nombre, img, status } = req.body;
         let categoria;
@@ -60,7 +60,7 @@ router.post('/categoriaProductoSemi/post' , async (req, res) => {
 });
 
 //actualizar categoria de productos semifinales
-router.put('/categoriaProductoSemi/put/:id', async (req, res) => {
+router.put('/categoriaProductoSemi/put/:id', checkAuth, async (req, res) => {
     try {
         const idOld = req.params.id;
         const { id, nombre, img, status } = req.body;
@@ -97,7 +97,7 @@ router.put('/categoriaProductoSemi/put/:id', async (req, res) => {
 });
 
 //eliminar categoria de productos semifinales
-router.delete('/categoriaProductoSemi/delete/:id', async (req, res) => {
+router.delete('/categoriaProductoSemi/delete/:id', checkAuth, async (req, res) => {
     try {
         let response = await functionsCategoria.deleteCategoria('categoriaProductoSemifinal','productoSemifinal',req.params.id);
         return res.status(response.status).json(response.messege);
@@ -109,7 +109,7 @@ router.delete('/categoriaProductoSemi/delete/:id', async (req, res) => {
 //======FUNCIONES DE PRODUCTOS========
 
 //Obtener todos los productos semifinales asociados a sus categorias
-router.get('/productoSemi/documents', async (req, res) => {
+router.get('/productoSemi/documents', checkAuth, async (req, res) => {
     try {
 
         let data = await functionsCategoria.obtenerProductos('categoriaProductoSemifinal' ,'productoSemifinal');
@@ -120,7 +120,7 @@ router.get('/productoSemi/documents', async (req, res) => {
     }
 });
 //Obtener todos los productos semifinales asociados a una categoria
-router.get('/productoSemi/documents/:id', async (req, res) => {
+router.get('/productoSemi/documents/:id', checkAuth, async (req, res) => {
     try {
         const id = req.params.id;
         let data = await functionsCategoria.getProductosPorCategoria('categoriaProductoSemifinal','productoSemifinal',id);
@@ -132,7 +132,7 @@ router.get('/productoSemi/documents/:id', async (req, res) => {
 });
 
 //Buscar un producto por id
-router.get('/productoSemi/:idCategoria/:id', async (req, res) => {
+router.get('/productoSemi/:idCategoria/:id', checkAuth, async (req, res) => {
     try {
         const id = req.params.id;
         const idCategoria = req.params.idCategoria;
@@ -145,7 +145,7 @@ router.get('/productoSemi/:idCategoria/:id', async (req, res) => {
 });
 
 //Agregar Productos
-router.post('/productoSemi/post/', async (req, res) => {
+router.post('/productoSemi/post/', checkAuth, async (req, res) => {
     try {
         //
         const { id, categoriaId, nombre, img, materiaPrima, status } = req.body;
@@ -190,7 +190,7 @@ router.post('/productoSemi/post/', async (req, res) => {
 });
 
 //Actualizar Producto
-router.put('/productoSemi/put/:id', async (req, res) => {
+router.put('/productoSemi/put/:id', checkAuth, async (req, res) => {
     try {
         const { id, nombre, img, materiaPrima, categoriaId, oldProduct, status } = req.body;
         let producto;
@@ -243,7 +243,7 @@ router.put('/productoSemi/put/:id', async (req, res) => {
 });
 
 //eliminar productos semifinales
-router.delete('/productoSemi/delete/:id/:categoria', async (req, res) => {
+router.delete('/productoSemi/delete/:id/:categoria', checkAuth, async (req, res) => {
     try {
         const id = req.params.id;
         const categoria = req.params.categoria;

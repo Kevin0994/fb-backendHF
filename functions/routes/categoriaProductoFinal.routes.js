@@ -2,7 +2,7 @@
 const functionsCrud = require('../methods/metodosCrud')
 const functionsCategoria = require('../methods/metodosCategoria')
 const functionStorage = require('../services/firebase-storage')
-
+const checkAuth = require('../middleware/checkAuth')
 const { Router } = require('express')
 const router = Router();
 
@@ -11,7 +11,7 @@ const admin = require('firebase-admin')
 const db = admin.firestore()
 
 //obtener todas las categorias de los productos finales
-router.get('/categoriaProductoFinal/documents', async (req, res) => {
+router.get('/categoriaProductoFinal/documents', checkAuth, async (req, res) => {
     try {
 
         let data = await functionsCategoria.obtenerCategorias('categoriaProductoFinal','productoFinal');
@@ -23,7 +23,7 @@ router.get('/categoriaProductoFinal/documents', async (req, res) => {
 });
 
 //insertar categoria de productos finales
-router.post('/categoriaProductoFinal/post', async (req, res) => {
+router.post('/categoriaProductoFinal/post', checkAuth, async (req, res) => {
     try {
 
         const { id, nombre, img, status } = req.body;
@@ -63,7 +63,7 @@ router.post('/categoriaProductoFinal/post', async (req, res) => {
 });
 
 //actualizar categoria de productos finales
-router.put('/categoriaProductoFinal/put/:id', async (req, res) => {
+router.put('/categoriaProductoFinal/put/:id', checkAuth, async (req, res) => {
     try {
         const idOld = req.params.id;
         const { id, nombre, img, status } = req.body;
@@ -102,7 +102,7 @@ router.put('/categoriaProductoFinal/put/:id', async (req, res) => {
 });
 
 //eliminar categoria de productos finales
-router.delete('/categoriaProductoFinal/delete/:id', async (req, res) => {
+router.delete('/categoriaProductoFinal/delete/:id', checkAuth, async (req, res) => {
     try {
 
         let response = await functionsCategoria.deleteCategoria('categoriaProductoFinal', 'productoFinal',req.params.id);
@@ -117,7 +117,7 @@ router.delete('/categoriaProductoFinal/delete/:id', async (req, res) => {
 // ======Productos Finales========
 
 //Obtener todos los productos finales asociados a sus categorias
-router.get('/productoFinal/documents', async (req, res) => {
+router.get('/productoFinal/documents', checkAuth, async (req, res) => {
 
     let data = await functionsCategoria.obtenerProductos('categoriaProductoFinal', 'productoFinal');
     return res.status(200).json(data);
@@ -136,7 +136,7 @@ router.get('/productoFinal/documents/:id', async (req, res) => {
 });
 
 //Agregar Productos Finales
-router.post('/productoFinal/post/', async (req, res) => {
+router.post('/productoFinal/post/', checkAuth, async (req, res) => {
     try {
         const { id, categoriaId, nombre, img, receta, status } = req.body;
         let producto;
@@ -185,7 +185,7 @@ router.post('/productoFinal/post/', async (req, res) => {
 });
 
 //Actualizar Producto
-router.put('/productoFinal/put/:id', async (req, res) => {
+router.put('/productoFinal/put/:id', checkAuth, async (req, res) => {
     try {
         const { id, nombre, img, receta, categoriaId, oldProduct, status } = req.body;
         let producto;
@@ -238,7 +238,7 @@ router.put('/productoFinal/put/:id', async (req, res) => {
 
 
 //Eliminar productos Finales
-router.delete('/productoFinal/delete/:id/:categoria', async (req, res) => {
+router.delete('/productoFinal/delete/:id/:categoria', checkAuth, async (req, res) => {
     try {
         const id = req.params.id;
         const categoria = req.params.categoria;
