@@ -164,12 +164,6 @@ router.put('/usuario/documents/:id', checkAuth,async (req, res) => {
 });
 
 
-
-
-
-
-
-
 router.delete('/usuario/documents/:id', checkAuth,async (req, res) => {
     try {
         const doc = db.collection('usuario').doc(req.params.id);
