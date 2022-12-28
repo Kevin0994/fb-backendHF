@@ -24,9 +24,18 @@ router.get('/categoriaProductoSemi/documents', checkAuth, async (req, res) => {
 //insertar categoria de productos semifinales
 router.post('/categoriaProductoSemi/post', checkAuth, async (req, res) => {
     try {
-        const { id, nombre, img, status } = req.body;
+        const { nombre, img, status } = req.body;
         let categoria;
         let imagen;
+
+        let validacion =await functionsCrud.validarParametroRepetidoCollection('categoriaProductoSemifinal','nombre',nombre);
+
+        if(!validacion){
+            let response = {
+                message : 'Ya existe un alimento con este codigo'
+            }
+            return res.status(500).send(response);
+        }
 
         if(status){
             let urlImg = await functionStorage.uploadImage(img,'categoriaSemifinal/'+nombre+'/',nombre);
@@ -40,16 +49,16 @@ router.post('/categoriaProductoSemi/post', checkAuth, async (req, res) => {
                 img:imagen
             }
         }else{
-            imagen = null;
             categoria = {
                 nombre:nombre,
                 img: img,
             }
         }
 
-        await functionsCrud.insertarDocumentoId('categoriaProductoSemifinal' ,id,categoria);
+        let idDocument = await functionsCrud.insertarDocumento('categoriaProductoSemifinal' ,categoria);
         const response = {
             status: true,
+            id: idDocument,
             img: imagen,
         };
 
@@ -62,10 +71,25 @@ router.post('/categoriaProductoSemi/post', checkAuth, async (req, res) => {
 //actualizar categoria de productos semifinales
 router.put('/categoriaProductoSemi/put/:id', checkAuth, async (req, res) => {
     try {
-        const idOld = req.params.id;
-        const { id, nombre, img, status } = req.body;
+        const id = req.params.id;
+        const { nombre, img, oldNombre, status } = req.body;
         let categoria;
         let imagen;
+        let validacion = true;
+
+
+        if(nombre != oldNombre){
+            validacion = await functionsCrud.validarParametroRepetidoCollection('categoriaProductoSemifinal','nombre',nombre);
+        }
+
+        if(!validacion){
+            let response = {
+                message : 'Ya existe un alimento con este codigo'
+            }
+            return res.status(500).send(response);
+        }
+
+
         if(status){ //verifica si existo alguna imagen
             let urlImg = await functionStorage.updateImage(img,'categoriaSemifinal/'+nombre+'/',nombre);
             imagen = {
@@ -84,7 +108,7 @@ router.put('/categoriaProductoSemi/put/:id', checkAuth, async (req, res) => {
             }
         }
 
-        await functionsCategoria.editarCategoria('categoriaProductoSemifinal','productoSemifinal' ,idOld,id,categoria);
+        await functionsCrud.editarDocumento('categoriaProductoSemifinal',id,categoria);
         const response = {
             status: false,
             img:imagen,

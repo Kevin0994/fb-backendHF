@@ -61,7 +61,7 @@ router.post('/alimentos/post', checkAuth, async (req, res) => {
             codigo: codigo,
             nombre: nombre,
         }
-        let validacion =await functionsCrud.validarAlimentoRepetido('listaCosechas',codigo);
+        let validacion =await functionsCrud.validarParametroRepetidoCollection('listaCosechas','codigo',codigo);
 
         if(validacion){
             let idDocument = await functionsCrud.insertarDocumento('listaCosechas',categoria);
@@ -94,7 +94,7 @@ router.put('/alimentos/put/:id', checkAuth, async (req, res) => {
             nombre: nombre,
         }
         if(codigo != oldCodigo){
-            validacion = await functionsCrud.validarAlimentoRepetido('listaCosechas',codigo);
+            validacion = await functionsCrud.validarParametroRepetidoCollection('listaCosechas','codigo',codigo);
         }
         
 

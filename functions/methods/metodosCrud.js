@@ -192,15 +192,15 @@ async function deleteDocumentoId(coleccion,id){
     await db.collection(coleccion).doc(id).delete();
 }
 
-async function validarAlimentoRepetido(collecion,codigo){
+async function validarParametroRepetidoCollection(collecion,parametro,codigo){
     let status = true;
     const refDoc = db.collection(collecion);
-    const alimentos = refDoc.where('codigo' , '==', codigo);
-    const docsAlimentos = await alimentos.get();
-    if(docsAlimentos.docs.length != 0){
+    const querySnapshot = refDoc.where(parametro , '==', codigo);
+    const documents = await querySnapshot.get();
+    if(documents.docs.length != 0){
         return status = false;
     }
-
+    console.log('validadoooooooo')
     return status;
 }
 
@@ -214,5 +214,5 @@ module.exports = { getNameProductosMP,
     deleteDocumentoId, 
     obtenerAlimentos, 
     getAlimentoProductos,
-    validarAlimentoRepetido
+    validarParametroRepetidoCollection
 };

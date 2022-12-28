@@ -39,7 +39,7 @@ async function obtenerCategorias(collecion,subcollecion){
 };
 
 
-async function editarCategoria(collecion,subcollecion,idOld,id,data){
+/* async function editarCategoria(collecion,subcollecion,idOld,id,data){
 
     const queryCategoria = db.collection(collecion).doc(idOld);
 
@@ -85,7 +85,7 @@ async function editarCategoria(collecion,subcollecion,idOld,id,data){
         }
 
     }
-}
+} */
 
 async function deleteCategoria(collecion, subcollecion,id){
 
@@ -373,7 +373,6 @@ async function DeleteProducto(collecion,categoria, subcollecion, id,){
 }
 
 module.exports = { obtenerCategorias,
-    editarCategoria,
     deleteCategoria,
     obtenerProductos,
     getProducto,
