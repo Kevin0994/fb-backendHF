@@ -16,6 +16,7 @@ async function getNameProductosMP(materiaPrima){
             query = db.collection('listaCosechas').doc(segments[1]);
             querySnapshot = await query.get();
             if (querySnapshot.exists) {
+                array[index]['codigo'] = querySnapshot.data().codigo;
                 array[index]['nombre'] = querySnapshot.data().nombre;
             }else{
                 array[index]['nombre']='no encontrado';
@@ -200,7 +201,18 @@ async function validarParametroRepetidoCollection(collecion,parametro,codigo){
     if(documents.docs.length != 0){
         return status = false;
     }
-    console.log('validadoooooooo')
+    return status;
+}
+
+async function validarParametroRepetidoProducto(collecion,subcollecion,categoriaId,parametro,codigo){
+    let status = true;
+    const refDoc = db.collection(collecion).doc(categoriaId).collection(subcollecion);
+    const querySnapshot = refDoc.where(parametro , '==', codigo);
+    const documents = await querySnapshot.get();
+    if(documents.docs.length != 0){
+        return status = false;
+    }
+
     return status;
 }
 
@@ -214,5 +226,6 @@ module.exports = { getNameProductosMP,
     deleteDocumentoId, 
     obtenerAlimentos, 
     getAlimentoProductos,
-    validarParametroRepetidoCollection
+    validarParametroRepetidoCollection,
+    validarParametroRepetidoProducto
 };

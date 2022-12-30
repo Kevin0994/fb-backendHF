@@ -172,14 +172,24 @@ router.get('/productoSemi/:idCategoria/:id', checkAuth, async (req, res) => {
 router.post('/productoSemi/post/', checkAuth, async (req, res) => {
     try {
         //
-        const { id, categoriaId, nombre, img, materiaPrima, status } = req.body;
+        const { codigo, categoriaId, nombre, img, materiaPrima, status } = req.body;
         let producto;
         let imagen;
+
+        let validacion =await functionsCrud.validarParametroRepetidoProducto('categoriaProductoSemifinal','productoSemifinal',categoriaId,'codigo',codigo);
+
+        if(!validacion){
+            let response = {
+                message : 'Ya existe un alimento con este codigo'
+            }
+            return res.status(500).send(response);
+        }
 
         let refMateriaPrima =  await functionsCategoria.validarMateriaPrimaSemi(materiaPrima);
 
         if(refMateriaPrima.length != 0){
             producto = {
+                codigo:codigo,
                 nombre:nombre,
                 materiaPrima: refMateriaPrima,
             }
@@ -197,9 +207,10 @@ router.post('/productoSemi/post/', checkAuth, async (req, res) => {
                 producto['img'] = img;
             }
     
-            await functionsCategoria.insertarProductos('categoriaProductoSemifinal',categoriaId,'productoSemifinal' ,id ,producto);
+            let idDocument = await functionsCategoria.insertarProductos('categoriaProductoSemifinal',categoriaId,'productoSemifinal' ,producto);
             const response = {
                 status: true,
+                id:idDocument,
                 img: imagen,
                 refMateriaPrima: refMateriaPrima,
             }; 
@@ -216,21 +227,35 @@ router.post('/productoSemi/post/', checkAuth, async (req, res) => {
 //Actualizar Producto
 router.put('/productoSemi/put/:id', checkAuth, async (req, res) => {
     try {
-        const { id, nombre, img, materiaPrima, categoriaId, oldProduct, status } = req.body;
+        const { codigo, nombre, img, materiaPrima, categoriaId, oldProduct, status } = req.body;
+        let id = req.params.id;
+        let validacion = true;
         let producto;
         let imagen;
+
+        if(codigo != oldProduct.codigo){
+            validacion =await functionsCrud.validarParametroRepetidoProducto('categoriaProductoSemifinal','productoSemifinal',categoriaId,'codigo',codigo);
+        }
+
+        if(!validacion){
+            let response = {
+                message : 'Ya existe un alimento con este codigo'
+            }
+            return res.status(500).send(response);
+        }
+
 
         let refMateriaPrima =  await functionsCategoria.validarMateriaPrimaSemi(materiaPrima);
 
         if(refMateriaPrima.length != 0){
             const refDocument = {
-                idOld : req.params.id,
                 id : id,
                 categoriaId: categoriaId,
                 oldProduct: oldProduct
             }
 
             producto = {
+                codigo: codigo,
                 nombre:nombre,
                 materiaPrima: refMateriaPrima,
             }

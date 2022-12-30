@@ -1,7 +1,7 @@
 const functionsCrud = require('../methods/metodosCrud')
 const functionsInventario = require('../methods/metodosInventario')
 const checkAuth = require('../middleware/checkAuth')
-const { Router } = require('express')
+const { Router, response } = require('express')
 const router = Router();
 
 const admin = require('firebase-admin')
@@ -36,19 +36,59 @@ router.get('/alimentos/documents/:id', (req, res) => {
 router.post('/alimentos/validate/get', checkAuth, async (req, res) => {
     try {
         const materiaPrima  = req.body;
-
-        let response = Array();
+        let status = true;
+        let mpNf;
+        let response;
 
         if(materiaPrima[0].id != undefined){
             response = await functionsCrud.getNameProductosMP(materiaPrima);
+            response.every(function (doc){
+                if(doc.nombre === 'no encontrado'){
+                    if(doc.id._path.segments.length < 3){
+                        mpNf = doc.id._path.segments[0] +'/'+ doc.id._path.segments[1]
+                    }else{
+                        mpNf = doc.id._path.segments[0] +'/'+ doc.id._path.segments[1] +'/'+ doc.id._path.segments[2] +'/'+doc.id._path.segments[3]
+                    }
+                    status = false;
+                    return false
+                }
+                return true;
+            })
         }
 
         if(materiaPrima[0].presentacion != undefined){
             response = await functionsCrud.getNameProductosReceta(materiaPrima);
+            response.every(function (rec) {
+                rec.materiaPrima.every(function (doc){
+                    if(doc.nombre === 'no encontrado'){
+                        if(doc.id._path.segments.length < 3){
+                            mpNf = doc.id._path.segments[0] +'/'+ doc.id._path.segments[1]
+                        }else{
+                            mpNf = doc.id._path.segments[0] +'/'+ doc.id._path.segments[1] +'/'+ doc.id._path.segments[2] +'/'+doc.id._path.segments[3]
+                        }
+                        status = false;
+                        return false
+                    }
+                    return true;
+                })
+                if(!status){
+                    return false;
+                }
+                return true;
+            })
+            
         }
 
+        if(status){
+            return res.status(200).json(response);
+        }else{
+            let response = {
+                message: 'No se encontro la materia prima '+mpNf+' en el servidor'
+            }
+            return res.status(500).send(response);
+        }
 
-        return res.status(200).json(materiaPrima);
+        
     } catch (error) {
         return res.status(500).send(error);
     }

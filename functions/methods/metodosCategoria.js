@@ -125,6 +125,7 @@ async function obtenerProductos(collecion, subcollecion){
                 if(subcollecion === 'productoFinal'){
                     document = {
                         id: producto.id,
+                        codigo: producto.data().codigo,
                         categoriaId: categoria.id,
                         categoria: categoria.data().nombre,
                         nombre: producto.data().nombre,
@@ -138,6 +139,7 @@ async function obtenerProductos(collecion, subcollecion){
                 if(subcollecion === 'productoSemifinal'){
                     document = {
                         id: producto.id,
+                        codigo: producto.data().codigo,
                         categoriaId: categoria.id,
                         categoria: categoria.data().nombre,
                         nombre: producto.data().nombre,
@@ -320,15 +322,19 @@ async function validarMateriaPrimaFinal(array){
         response.push(ref);
     }))
 
+
     return response;
 }
 
 
 //Insertar productos
-async function insertarProductos(collecion,idCategoria,subcollecion,id,data){
-
+async function insertarProductos(collecion,idCategoria,subcollecion,data){
+    let id;
     const query = db.collection(collecion).doc(idCategoria);
-    await query.collection(subcollecion).doc(id).create(data);
+    await query.collection(subcollecion).add(data).then(async function(docRef){
+        id = docRef.id;
+    });
+    return id;
 }
 
 //Actualizar productos
@@ -336,27 +342,15 @@ async function ActualizarProducto(collecion, subcollecion, document,data){
 
     const query = db.collection(collecion);
 
-    if(document.idOld == document.id && document.categoriaId == document.oldProduct.categoriaId){
+    if( document.categoriaId == document.oldProduct.categoriaId){
 
-        await query.doc(document.categoriaId).collection(subcollecion).doc(document.idOld).update(data);
+        await query.doc(document.categoriaId).collection(subcollecion).doc(document.id).update(data);
         return;
     }
 
-    if(document.idOld != document.id && document.categoriaId == document.oldProduct.categoriaId){
 
-        await query.doc(document.categoriaId).collection(subcollecion).doc(document.idOld).delete();
-        await query.doc(document.categoriaId).collection(subcollecion).doc(document.id).create(data);
-        return;
-    }
-
-    if(document.idOld == document.id && document.categoriaId != document.oldProduct.categoriaId){
+    if(document.categoriaId != document.oldProduct.categoriaId){
         await query.doc(document.oldProduct.categoriaId).collection(subcollecion).doc(document.id).delete();
-        await query.doc(document.categoriaId).collection(subcollecion).doc(document.id).create(data);
-        return;
-    }
-
-    if(document.idOld != document.id && document.categoriaId != document.oldProduct.categoriaId){
-        await query.doc(document.oldProduct.categoriaId).collection(subcollecion).doc(document.idOld).delete();
         await query.doc(document.categoriaId).collection(subcollecion).doc(document.id).create(data);
         return;
     }
