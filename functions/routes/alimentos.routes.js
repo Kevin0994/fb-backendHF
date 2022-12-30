@@ -185,6 +185,8 @@ router.post('/inventarioProducto/stock/', checkAuth, async (req, res) => {
     try {
         const materiaPrima = req.body;
         let response = Array();
+        let status = true;
+        let message;
 
         await Promise.all(materiaPrima.map(async function(doc){
             let reference=doc.id._path.segments[0];
@@ -202,7 +204,9 @@ router.post('/inventarioProducto/stock/', checkAuth, async (req, res) => {
                 resultado.map(function(result){
                     if(result != null){
                         if(result.status == 500){
-                            return res.status(500).send(result);
+                            status = false;
+                            message = result;
+                            return;
                         }
                         response.push(result);
                         return;
@@ -220,7 +224,9 @@ router.post('/inventarioProducto/stock/', checkAuth, async (req, res) => {
                 resultado.map(function(result){
                     if(result != null){
                         if(result.status == 500){
-                            return res.status(500).send(result);
+                            status = false;
+                            message = result;
+                            return;
                         }
                         response.push(result);
                         return;
@@ -237,7 +243,9 @@ router.post('/inventarioProducto/stock/', checkAuth, async (req, res) => {
                 resultado.map(function(result){
                     if(result != null){
                         if(result.status == 500){
-                            return res.status(500).send(result);
+                            status = false;
+                            message = result;
+                            return;
                         }
                         response.push(result);
                         return;
@@ -246,6 +254,9 @@ router.post('/inventarioProducto/stock/', checkAuth, async (req, res) => {
             }
         }))
 
+        if(!status){
+            return res.status(500).send(message);
+        }
 
         response = await functionsInventario.descontarStock(response);
 

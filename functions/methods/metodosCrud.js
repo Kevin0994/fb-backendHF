@@ -108,6 +108,7 @@ async function getAlimentoProductos(){
 
     let response = docsAlimentos.map(doc => ({
         id: doc.id,
+        referencia:  doc.data().nombre +' - '+ doc.data().codigo + ' - ' + 'alimentos',
         nombre: doc.data().nombre,
     }))
 
@@ -120,6 +121,7 @@ async function getAlimentoProductos(){
         document = {
             id: producto.id,
             categoria: producto._ref._path.segments[1],
+            referencia:  producto.data().nombre +' - '+ producto.data().codigo + ' - ' + 'producto Semifinal',
             nombre: producto.data().nombre,
         }
         response.push(document);
@@ -135,6 +137,7 @@ async function getAlimentoProductos(){
         document = {
             id: producto.id,
             categoria: producto._ref._path.segments[1],
+            referencia:  producto.data().nombre +' - '+ producto.data().codigo + ' - ' + 'producto Semifinal',
             nombre: producto.data().nombre,
         }
         response.push(document);

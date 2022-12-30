@@ -31,16 +31,12 @@ router.get('/inventarioProductoFinal/all/documents', checkAuth, async (req, res)
 
 router.post('/inventarioProductoFinal/post', checkAuth, async (req, res) => {
     try {
-        const { codigo, materiaPrima, nombre, lote_mp, lote, n_proceso, fechaEntrada, unidades, pesoFinal, responsable, conversion, estado } = req.body;
-
-        let refDocument = materiaPrima.map(function(doc){
-            return db.doc(doc._path.segments[0]+'/'+doc._path.segments[1]);
-        })
+        const { codigo, nombre, lote_mp, loteMes, lote, n_proceso, fechaEntrada, unidades, pesoFinal, responsable, conversion, estado } = req.body;
 
         const producto = {
             codigo : codigo,
             nombre: nombre,
-            materiaPrima: refDocument,
+            loteMes: loteMes,
             lote: lote,
             stock: pesoFinal,
         }

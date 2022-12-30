@@ -127,7 +127,7 @@ async function getInventarioProductos(coleccion){
 async function postInventarioSemifinalProceso(coleccion,idIngreso,producto,ingreso){
 
     const queryInventario = db.collection(coleccion);
-    const query = db.collection(coleccion).where("nombre", "==", producto.nombre).where("lote", "==", parseInt(producto.lote)); //Busca el inventario por nombre y lote 
+    const query = db.collection(coleccion).where("nombre", "==", producto.nombre).where("loteMes", "==", parseInt(producto.loteMes)); //Busca el inventario por nombre y lote 
     const inventario = await query.get();
     
     if (inventario.docs.length == 0) { //Si no se encontro ningun inventario se ingresa un nuevo inventario
@@ -209,7 +209,7 @@ async function getInventarioFinal(coleccion){
 async function postInventarioProductoFinal(coleccion,idIngreso,producto,ingreso){
 
     const queryInventario = db.collection(coleccion);
-    const query = db.collection(coleccion).where("nombre", "==", producto.nombre).where("lote", "==", parseInt(producto.lote)); //Busca el inventario por nombre y lote 
+    const query = db.collection(coleccion).where("nombre", "==", producto.nombre).where("loteMes", "==", parseInt(producto.loteMes)); //Busca el inventario por nombre y lote 
     const inventario = await query.get();
  
     if (inventario.docs.length == 0) { //Si no se encontro ningun inventario se ingresa un nuevo inventario
@@ -337,7 +337,7 @@ async function descontarStock(materiaPrima){
 
     let refDoc;
     let response = Array();
-
+    console.log('procede a descontarrrrrrrrr')
     await Promise.all(materiaPrima.map(async function(doc){
         refDoc = db.collection(doc.collecion).doc(doc.id);
         await refDoc.update({

@@ -178,6 +178,7 @@ async function getProductosPorCategoria(collecion,subcollecion,id){
         if(subcollecion === 'productoFinal'){
             document = {
                 id: productos.id,
+                codigo: productos.data().codigo,
                 img: productos.data().img,
                 categoriaId: querySnapshotCategoria.id,
                 categoria: querySnapshotCategoria.data().nombre,
@@ -189,6 +190,7 @@ async function getProductosPorCategoria(collecion,subcollecion,id){
         if(subcollecion === 'productoSemifinal'){
             document = {
                 id: productos.id,
+                codigo: productos.data().codigo,
                 img: productos.data().img,
                 categoriaId: querySnapshotCategoria.id,
                 categoria: querySnapshotCategoria.data().nombre,
