@@ -56,15 +56,29 @@ router.post('/alimentos/validate/get', checkAuth, async (req, res) => {
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 router.post('/alimentos/post', checkAuth, async (req, res) => {
     try {
-        const { id, nombre } = req.body;
+        const { codigo, nombre } = req.body;
         const categoria = {
-            nombre:nombre,
+            codigo: codigo,
+            nombre: nombre,
         }
-        await functionsCrud.insertarDocumentoId('listaCosechas',id,categoria);
-        
-        const status = true;
+        let validacion =await functionsCrud.validarAlimentoRepetido('listaCosechas',codigo);
 
-        return res.status(200).json(status);
+        if(validacion){
+            let idDocument = await functionsCrud.insertarDocumento('listaCosechas',categoria);
+
+            let response = {
+                status : true,
+                id : idDocument,
+            }
+    
+            return res.status(200).json(response);
+        }else{
+            let response = {
+                message : 'Ya existe un alimento con este codigo'
+            }
+            return res.status(500).send(response);
+        }
+
     } catch (error) {
         return res.status(500).send(error);
     }
@@ -72,15 +86,32 @@ router.post('/alimentos/post', checkAuth, async (req, res) => {
 
 router.put('/alimentos/put/:id', checkAuth, async (req, res) => {
     try {
-        const idOld = req.params.id;
-        const { id, nombre } = req.body;
+        const id= req.params.id;
+        let validacion = true;
+        const { codigo, nombre, oldCodigo } = req.body;
         const alimento = {
-            nombre:nombre,
+            codigo: codigo,
+            nombre: nombre,
         }
-        await functionsCrud.editarDocumentoId('listaCosechas',idOld,id,alimento);
-        const status = false;
+        if(codigo != oldCodigo){
+            validacion = await functionsCrud.validarAlimentoRepetido('listaCosechas',codigo);
+        }
+        
 
-        return res.status(200).json(status);
+        if(validacion){
+            await functionsCrud.editarDocumento('listaCosechas',id,alimento);
+            let response = {
+                status : false,
+            }
+    
+            return res.status(200).json(response);
+        }else{
+            let response = {
+                message : 'Ya existe un alimento con este codigo'
+            }
+            return res.status(500).send(response);
+        }
+       
     } catch (error) {
         return res.status(500).send(error);
     }

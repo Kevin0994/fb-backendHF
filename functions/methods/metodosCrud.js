@@ -158,6 +158,7 @@ async function obtenerAlimentos(coleccion){
     let querySnapshot = await query.get();
     let response = querySnapshot.docs.map(doc =>({
         id: doc.id,
+        codigo: doc.data().codigo,
         nombre: doc.data().nombre,
     }))
 
@@ -165,7 +166,16 @@ async function obtenerAlimentos(coleccion){
 }
 
 async function insertarDocumento(coleccion,data){
-    await db.collection(coleccion).doc().create(data);
+    let id;
+    await db.collection(coleccion).add(data).then(async function(docRef){
+        id = docRef.id;
+    });
+
+    return id;
+}
+
+async function editarDocumento(coleccion,id,data){
+    await db.collection(coleccion).doc(id).update(data);
 }
 
 async function insertarDocumentoId(coleccion,id,data){
@@ -182,5 +192,27 @@ async function deleteDocumentoId(coleccion,id){
     await db.collection(coleccion).doc(id).delete();
 }
 
+async function validarAlimentoRepetido(collecion,codigo){
+    let status = true;
+    const refDoc = db.collection(collecion);
+    const alimentos = refDoc.where('codigo' , '==', codigo);
+    const docsAlimentos = await alimentos.get();
+    if(docsAlimentos.docs.length != 0){
+        return status = false;
+    }
 
-module.exports = { getNameProductosMP, getNameProductosReceta, insertarDocumento, insertarDocumentoId, editarDocumentoId, deleteDocumentoId, obtenerAlimentos, getAlimentoProductos };
+    return status;
+}
+
+
+module.exports = { getNameProductosMP, 
+    getNameProductosReceta, 
+    insertarDocumento, 
+    insertarDocumentoId, 
+    editarDocumento,
+    editarDocumentoId, 
+    deleteDocumentoId, 
+    obtenerAlimentos, 
+    getAlimentoProductos,
+    validarAlimentoRepetido
+};

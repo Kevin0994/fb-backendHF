@@ -177,6 +177,7 @@ router.post('/productoSemi/post/', checkAuth, async (req, res) => {
             const response = {
                 status: true,
                 img: imagen,
+                refMateriaPrima: refMateriaPrima,
             }; 
             return res.status(200).json(response);
         }else{
@@ -223,7 +224,7 @@ router.put('/productoSemi/put/:id', checkAuth, async (req, res) => {
                 producto['img'] = img;
             }
 
-            await functionsCategoria.ActualizarProductoSemi('categoriaProductoSemifinal','productoSemifinal', refDocument ,producto);
+            await functionsCategoria.ActualizarProducto('categoriaProductoSemifinal','productoSemifinal', refDocument ,producto);
             const response = {
                 status: false,
                 img: imagen,

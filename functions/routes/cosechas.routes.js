@@ -21,6 +21,7 @@ router.get('/cosechas/documents', checkAuth, async (req, res) => {
             codigo: doc.data().codigo,
             stock: doc.data().stock / 1000 ,
             lote: doc.data().lote,
+            loteMes: doc.data().loteMes,
         }))
 
         response.sort(function(a, b){ //Ordena el array de manera Descendente
@@ -35,7 +36,7 @@ router.get('/cosechas/documents', checkAuth, async (req, res) => {
 
         return res.status(200).json(response);
     } catch (error) {
-        return res.status(500).json();
+        return res.status(500).json(false);
     }
 });
 
@@ -83,10 +84,10 @@ router.post('/cosechas/post/:nombre/:lote', checkAuth, async (req, res) => {
         const { stockN, nombreN, codigo, loteN, historial } = req.body;
 
         const nombre = req.params.nombre;
-        const lote = req.params.lote;
+        const loteMes = parseInt(req.params.lote);
         var idArrays;
         let status;
-        const doc = db.collection("cosechas").where("nombre", "==", nombre).where("lote", "==", parseInt(lote)); //Busca las cosecha por nombre y lote 
+        const doc = db.collection("cosechas").where("nombre", "==", nombre).where("loteMes", "==",loteMes); //Busca las cosecha por nombre y lote 
         const cosecha = await doc.get();
         const docs = cosecha.docs;
 
@@ -96,6 +97,7 @@ router.post('/cosechas/post/:nombre/:lote', checkAuth, async (req, res) => {
                 nombre: nombreN,
                 codigo: codigo,
                 stock: stockN,
+                loteMes: loteMes,
                 lote: loteN,
                 historial: FieldValue.arrayUnion({
                     id: 1,
@@ -109,7 +111,7 @@ router.post('/cosechas/post/:nombre/:lote', checkAuth, async (req, res) => {
             return res.status(200).json(status);
         }
 
-        if(cosecha.historial == null){
+        if(docs[0].data().historial.length === 0){
             await db.collection('cosechas').doc(docs[0].id)
             .update({
                 stock: historial[0].ingreso,
@@ -157,82 +159,6 @@ router.post('/cosechas/post/:nombre/:lote', checkAuth, async (req, res) => {
     }
 });
 
-/* //Editar historial de cosechas
-router.post('/cosechas/put/:nombre/:lote', async (req, res) => {
-    try {
-
-        const { stockN, nombreN, codigo, loteN, historial, cosechaHistorial } = req.body;
-
-        const nombre = req.params.nombre;
-        const lote = req.params.lote;
-        var idArrays;
-        let status;
-        const doc = db.collection("cosechas").where("nombre", "==", nombre).where("lote", "==", parseInt(lote)); //Busca las cosecha por nombre y lote 
-        const cosecha = await doc.get();
-        const docs = cosecha.docs;
-        const resultado = docs.map(doc => ({ //Guarda el resultado de la busqueda en un variable
-            id: doc.id,
-            stock: doc.data().stock,
-            history: doc.data().historial,
-        }));
-
-        if(resultado.length != 0){ //Si se encontro la cosecha se comienza a editar el historial
-            if(cosechaHistorial.nombre != nombreN || loteN != cosechaHistorial.lote){
-
-                console.log("Cosecha nombre o lote cambiado");
-
-                stockN = (cosechaHistorial[0].stock - stockN) * 1000,
-
-                console.log("Eliminando Historial");
-
-                const response = await db.collection("cosechas").doc(req.params.id).update({
-                    stock: stock,
-                    historial: FieldValue.arrayRemove({
-                        id: idHis,
-                        ingreso: ingreso*1000,
-                        fecha: fecha,
-                        responsable: responsable
-                    })
-                })
-
-                console.log("Actualizando Cosechas stock");
-
-            }
-
-            resultado[0].history.map(function(doc){
-                idArrays={
-                    id: doc.id
-                }
-            })
-            await db.collection("cosechas").doc(resultado[0].id).update({
-                stock: resultado[0].stock + historial[0].ingreso,
-                historial: FieldValue.arrayUnion({
-                    id: Math.max(idArrays.id)+1,
-                    ingreso: historial[0].ingreso,
-                    fecha: historial[0].fecha,
-                    responsable: historial[0].responsable
-                })
-            })
-            status = false;
-        }else{ //actualiza la cosecha existente
-            await db.collection('cosechas').doc()
-            .create({
-                nombre: nombreN,
-                codigo: codigo,
-                stock: stockN,
-                lote: loteN,
-                historial: historial,
-            });
-            status = true;
-
-        }
-        return res.status(200).json(status);
-    } catch (error) {
-        return res.status(500).send(error);
-    }
-}); */
-
-
 //Eliminar Historial
 router.post('/cosechaHistorial/delete/:id', checkAuth, async (req, res) => {
     try {
@@ -264,8 +190,8 @@ router.delete('/cosechas/documents/:id', checkAuth, async (req, res) => {
     }
 });
 
-//Valida si exite stock para fabricar un producto semifinal y actualiza el stock de la casecha a usar para la fabricacion
-router.put('/stock/:nombre', checkAuth, (req, res) => {
+/* //Valida si exite stock para fabricar un producto semifinal y actualiza el stock de la casecha a usar para la fabricacion
+router.put('/stock/:nombre', (req, res) => {
     (async () => {
         try {
             const nombre = req.params.nombre;
@@ -358,6 +284,6 @@ router.put('/stock/:nombre', checkAuth, (req, res) => {
         }
     })();
 });
-
+ */
 
 module.exports = router

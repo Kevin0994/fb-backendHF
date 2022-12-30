@@ -332,7 +332,7 @@ async function insertarProductos(collecion,idCategoria,subcollecion,id,data){
 }
 
 //Actualizar productos
-async function ActualizarProductoSemi(collecion, subcollecion, document,data){
+async function ActualizarProducto(collecion, subcollecion, document,data){
 
     const query = db.collection(collecion);
 
@@ -380,7 +380,7 @@ module.exports = { obtenerCategorias,
     validarMateriaPrimaSemi,
     validarMateriaPrimaFinal,
     insertarProductos,
-    ActualizarProductoSemi,
+    ActualizarProducto,
     getProductosPorCategoria,
     DeleteProducto,
 };
