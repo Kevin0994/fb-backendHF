@@ -163,13 +163,6 @@ router.put('/usuario/documents/:id', checkAuth,async (req, res) => {
     }
 });
 
-
-
-
-
-
-
-
 router.delete('/usuario/documents/:id', checkAuth,async (req, res) => {
     try {
         const doc = db.collection('usuario').doc(req.params.id);
@@ -179,8 +172,5 @@ router.delete('/usuario/documents/:id', checkAuth,async (req, res) => {
         return res.status(500).send(error);
     }
 });
-
-
-
 
 module.exports = router
