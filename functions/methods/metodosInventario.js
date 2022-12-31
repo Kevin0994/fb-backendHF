@@ -230,13 +230,13 @@ async function postInventarioProductoFinal(coleccion,idIngreso,producto,ingreso)
 }
 
 
-async function validateStock(collecion,name,peso){
+async function validateStock(collection,name,peso){
     const nombre = name;
     let ingreso = peso;
     let total = 0;
     let resultado= Array();
     let response= Array();
-    const doc = db.collection(collecion).where("nombre", "==", nombre);
+    const doc = db.collection(collection).where("nombre", "==", nombre);
     const cosecha = await doc.get();
     const docs = cosecha.docs;
     if(docs.length == undefined){
@@ -252,6 +252,7 @@ async function validateStock(collecion,name,peso){
         if(doc.data().stock != 0){
             document={
                 id: doc.id,
+                codigo: doc.data().codigo,
                 nombre:  doc.data().nombre,
                 lote: doc.data().lote,
                 stock: doc.data().stock,
@@ -280,8 +281,9 @@ async function validateStock(collecion,name,peso){
                 if(doc.stock >= ingreso){
                     document={
                         id: doc.id,
+                        codigo: doc.codigo,
                         nombre: doc.nombre,
-                        collecion: collecion,
+                        collection: collection,
                         lote: doc.lote,
                         ingreso: ingreso,
                         stock: doc.stock - ingreso,
@@ -293,8 +295,9 @@ async function validateStock(collecion,name,peso){
                 }else{
                     document={
                         id: doc.id,
+                        codigo: doc.codigo,
                         nombre: doc.nombre,
-                        collecion: collecion,
+                        collection: collection,
                         lote: doc.lote,
                         ingreso: doc.stock,
                         stock: 0,
@@ -337,20 +340,23 @@ async function descontarStock(materiaPrima){
 
     let refDoc;
     let response = Array();
-    console.log('procede a descontarrrrrrrrr')
     await Promise.all(materiaPrima.map(async function(doc){
-        refDoc = db.collection(doc.collecion).doc(doc.id);
+        refDoc = db.collection(doc.collection).doc(doc.id);
         await refDoc.update({
             stock: doc.stock,
         })
         document = {
-            id: doc.collecion+'/'+doc.id,
+            id: doc.collection+'/'+doc.id,
+            codigo: doc.codigo,
             nombre: doc.nombre,
+            collection: doc.collection,
             lote: doc.lote,
             ingreso: doc.ingreso,
         }
         response.push(document);
     }))
+
+    console.log('termine');
 
     return response;
 }

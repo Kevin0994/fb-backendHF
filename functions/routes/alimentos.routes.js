@@ -190,16 +190,16 @@ router.post('/inventarioProducto/stock/', checkAuth, async (req, res) => {
 
         await Promise.all(materiaPrima.map(async function(doc){
             let reference=doc.id._path.segments[0];
-            let collecion='';
+            let collection='';
             let nameProducto='';
             let ingreso=0;
 
             if(reference === 'listaCosechas'){
                 let resultado;
-                collecion = 'cosechas';
+                collection = 'cosechas';
                 nameProducto = doc.nombre;
                 ingreso = doc.peso;
-                resultado = await functionsInventario.validateStock(collecion,nameProducto,ingreso);
+                resultado = await functionsInventario.validateStock(collection,nameProducto,ingreso);
                 resultado = resultado.filter(e => e != null);
                 resultado.map(function(result){
                     if(result != null){
@@ -216,10 +216,10 @@ router.post('/inventarioProducto/stock/', checkAuth, async (req, res) => {
             }
             if(reference === 'categoriaProductoSemifinal'){
                 let resultado;
-                collecion = 'inventarioProductoSemifinal';
+                collection = 'inventarioProductoSemifinal';
                 nameProducto = doc.nombre;
                 ingreso = doc.peso;
-                resultado = await functionsInventario.validateStock(collecion,nameProducto,ingreso);
+                resultado = await functionsInventario.validateStock(collection,nameProducto,ingreso);
                 resultado = resultado.filter(e => e != null);
                 resultado.map(function(result){
                     if(result != null){
@@ -235,10 +235,10 @@ router.post('/inventarioProducto/stock/', checkAuth, async (req, res) => {
             }
             if(reference === 'categoriaProductoFinal'){
                 let resultado;
-                collecion = 'inventarioProductoFinal';
+                collection = 'inventarioProductoFinal';
                 nameProducto = doc.nombre;
                 ingreso = doc.peso;
-                resultado = await functionsInventario.validateStock(collecion,nameProducto,ingreso);
+                resultado = await functionsInventario.validateStock(collection,nameProducto,ingreso);
                 resultado = resultado.filter(e => e != null);
                 resultado.map(function(result){
                     if(result != null){
