@@ -167,6 +167,34 @@ router.delete('/alimentos/delete/:id', checkAuth, async (req, res) => {
     }
 });
 
+//Valida si el id del ingreso no se repite
+router.get('/productos/validateId/:tabla/:id', checkAuth, async (req, res) => {
+    try {
+        const id = req.params.id;
+        const tabla = req.params.tabla;
+        let collection;
+        let status = true;
+        if(tabla === 'Semi'){
+            collection = 'inventarioProductoSemifinal'
+        }
+
+        if(tabla === 'Final'){
+            collection = 'inventarioProductoFinal'
+        }
+
+        status = await functionsInventario.validarIdIngreso(collection,id);
+
+        if(!status){
+            return res.status(200).json(status);
+        }
+
+        return res.status(200).json(status);
+    } catch (error) {
+        return res.status(500).json();
+    }
+});
+
+
 //Obtiene la informacion de la lista de coasechas, productosSemifinales y productosFinales
 router.get('/productos/alldocuments', checkAuth, async (req, res) => {
     try {
@@ -259,6 +287,7 @@ router.post('/inventarioProducto/stock/', checkAuth, async (req, res) => {
         }
 
         response = await functionsInventario.descontarStock(response);
+        
 
         return res.status(200).send(response);
 

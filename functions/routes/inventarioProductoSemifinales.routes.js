@@ -59,8 +59,9 @@ router.post('/inventarioProductoSemifinal/post', checkAuth, async (req, res) => 
             responsable: responsable,
             estado: estado,
         }
-        let data = await functionsInventario.postInventarioSemifinalProceso('inventarioProductoSemifinal',n_proceso,producto,ingreso);
-        return res.status(200).json(data);
+
+        await functionsInventario.postInventarioSemifinalProceso('inventarioProductoSemifinal',n_proceso,producto,ingreso);
+        return res.status(200).json();
     } catch (error) {
         return res.status(500).send(error);
     }

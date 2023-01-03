@@ -116,7 +116,7 @@ async function getAlimentoProductos(){
     const querySnapshotSemi = await querySemifinal.get();
     const docsProductosSemi = querySnapshotSemi.docs;
 
-    docsProductosSemi.map(async function(producto){
+    docsProductosSemi.map(function(producto){
 
         document = {
             id: producto.id,
@@ -132,12 +132,12 @@ async function getAlimentoProductos(){
     const querySnapshotFinal = await queryFinal.get();
     const docsProductosFinal = querySnapshotFinal.docs;
 
-    docsProductosFinal.map(async function(producto){
+    docsProductosFinal.map(function(producto){
 
         document = {
             id: producto.id,
             categoria: producto._ref._path.segments[1],
-            referencia:  producto.data().nombre +' - '+ producto.data().codigo + ' - ' + 'producto Semifinal',
+            referencia:  producto.data().nombre +' - '+ producto.data().codigo + ' - ' + 'producto Final',
             nombre: producto.data().nombre,
         }
         response.push(document);

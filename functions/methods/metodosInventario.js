@@ -117,11 +117,44 @@ async function getInventarioProductos(coleccion){
         nombre: doc.data().nombre,
         materiaPrima: doc.data().materiaPrima,
         lote:  doc.data().lote,
+        loteMes: doc.data().loteMes,
         stock: doc.data().stock,
     }))
 
     return response;
 }
+
+async function validarIdIngreso(coleccion,ingreso){
+
+    let status = true;
+    const idIngreso = ingreso;
+    const query = db.collection(coleccion);
+    const querySnapshot = await query.get();
+    const productos = querySnapshot.docs;
+    
+
+    for(let i = 0; i < productos.length; i++) {
+        let queryIngreso = query.doc(productos[i].id).collection('ingresos');
+        let querySnapshot = await queryIngreso.get();
+        let ingresos = querySnapshot.docs;
+
+        for(let n = 0; n < ingresos.length; n++) {
+            if(ingresos[n].id === idIngreso){
+                status = false;
+                n = ingresos.length;
+            }
+        }
+
+        if(!status){
+            i=productos.length;
+        }
+    }
+
+    console.log(status);
+
+    return status;
+}
+
 
 
 async function postInventarioSemifinalProceso(coleccion,idIngreso,producto,ingreso){
@@ -139,6 +172,7 @@ async function postInventarioSemifinalProceso(coleccion,idIngreso,producto,ingre
         await queryInventario.doc(idInventario[0].id).collection('ingresos').doc(idIngreso.toString()).create(ingreso);
     } 
 }
+
 
 async function putInventarioSemifinalProceso(coleccion,id,data,stockActualizado){
     const producto = db.collection(coleccion).doc(id.producto);
@@ -311,7 +345,7 @@ async function validateStock(collection,name,peso){
                 }
             }else{
                 document = {
-                    messege : 'stock insuficiente de ['+ nombre +'] - cantidad faltante: '+ (ingreso - total).toString(),
+                    messege : 'stock insuficiente de ['+ nombre + '/'+ collection+'] - cantidad faltante: '+ (ingreso - total).toString(),
                     status : 500
                 }
 
@@ -322,7 +356,7 @@ async function validateStock(collection,name,peso){
         })
     }else{
         document = {
-            messege : 'stock insuficiente de ['+ nombre +'] - cantidad faltante: '+ (ingreso).toString(),
+            messege : 'stock insuficiente de ['+ nombre + '/'+ collection+'] - cantidad faltante: '+ (ingreso).toString(),
             status : 500
         }
 
@@ -356,12 +390,11 @@ async function descontarStock(materiaPrima){
         response.push(document);
     }))
 
-    console.log('termine');
-
     return response;
 }
 
 module.exports = { getInventarioSemifinalProcesos, 
+    validarIdIngreso,
     postInventarioSemifinalProceso, 
     putInventarioSemifinalProceso, 
     getInventarioProductos ,
