@@ -19,6 +19,18 @@ router.get('/inventarioProductoFinal/documents', checkAuth, async (req, res) => 
     }
 });
 
+//Obtiene todos los productos que esten asociados a un lote
+router.get('/inventarioProductoFinal/documents/:id', checkAuth, async (req, res) => {
+    try {
+        const id = req.params.id;
+        let data = await functionsInventario.getProductoLoteId('inventarioProductoFinal',id);
+        return res.status(200).json(data);
+    } catch (error) {
+        return res.status(500).json();
+    }
+});
+
+
 router.get('/inventarioProductoFinal/all/documents', checkAuth, async (req, res) => {
     try {
 

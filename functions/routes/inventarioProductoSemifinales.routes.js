@@ -10,6 +10,7 @@ const db = admin.firestore();
 
 const Timestamp = admin.firestore.Timestamp;
 
+//Obtiene todos los lotes de los productos Semifinales
 router.get('/inventarioProSemi/documents', checkAuth, async (req, res) => {
     try {
 
@@ -20,6 +21,19 @@ router.get('/inventarioProSemi/documents', checkAuth, async (req, res) => {
     }
 });
 
+//Obtiene todos los productos que esten asociados a un lote
+router.get('/inventarioProSemi/documents/:id', checkAuth, async (req, res) => {
+    try {
+        const id = req.params.id;
+        let data = await functionsInventario.getProductoLoteId('inventarioProductoSemifinal',id);
+        return res.status(200).json(data);
+    } catch (error) {
+        return res.status(500).json();
+    }
+});
+
+
+//Obtiene todos los productos que esten en elaboracion en curso
 router.get('/inventarioProductoSemifinal/proceso/documents', checkAuth, async (req, res) => {
     try {
 
@@ -31,6 +45,7 @@ router.get('/inventarioProductoSemifinal/proceso/documents', checkAuth, async (r
     }
 });
 
+//Obtiene todos los productos que esten terminados
 router.get('/inventarioProSemi/terminado/documents', checkAuth, async (req, res) => {
     try {
 
@@ -41,7 +56,7 @@ router.get('/inventarioProSemi/terminado/documents', checkAuth, async (req, res)
     }
 });
 
-
+//ingresa productos en el lote que corresponden
 router.post('/inventarioProductoSemifinal/post', checkAuth, async (req, res) => {
     try {
         const { codigo, nombre, lote_mp, lote, loteMes, n_proceso, fechaEntrada, responsable, estado } = req.body;
@@ -67,7 +82,7 @@ router.post('/inventarioProductoSemifinal/post', checkAuth, async (req, res) => 
     }
 });
 
-
+//actualiza los productos que hayan terminado su elaboracion
 router.put('/inventarioProductoSemifinales/put/:id', checkAuth, async (req, res) => {
     try {
         const { idIngreso, fechaSalida, unidades, stock, pesoFinal, conversion } = req.body;

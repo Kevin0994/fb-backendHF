@@ -124,6 +124,57 @@ async function getInventarioProductos(coleccion){
     return response;
 }
 
+//Obtienes los datos principales de los productos Semifinales segun su id del lote
+async function getProductoLoteId(collection,id){
+    const query = db.collection(collection).doc(id).collection('ingresos');
+    const querySnapshot = await query.get();
+    const ingresos = querySnapshot.docs;
+    let peso = 0;
+    let response = Array();
+    
+    ingresos.map(function(doc){
+        let fechaFormatE = doc.data().fechaEntrada.toDate();
+       
+        if(collection != 'inventarioProductoSemifinal'){
+            let document={
+                id: doc.id,
+                pesoFinal: doc.data().pesoFinal,
+                fechaEntrada: fechaFormatE.toLocaleString('en-US', { timeZone: 'America/Guayaquil' }),
+                unidades: doc.data().unidades,
+                conversion: doc.data().conversion,
+                loteMp: doc.data().loteMp,
+                responsable: doc.data().responsable,
+            }
+
+            response.push(document);
+            return;
+        }
+
+        let fechaFormatS = doc.data().fechaSalida.toDate();
+
+        doc.data().loteMp.forEach(function(pe) { //lote materia prima
+            peso += pe.ingreso;
+        })
+
+        let document={
+            id: doc.id,
+            pesoFinal: doc.data().pesoFinal,
+            fechaEntrada: fechaFormatE.toLocaleString('en-US', { timeZone: 'America/Guayaquil' }),
+            fechaSalida: fechaFormatS.toLocaleString('en-US', { timeZone: 'America/Guayaquil' }),
+            unidades: doc.data().unidades,
+            pesoMp: peso,
+            conversion: doc.data().conversion,
+            loteMp: doc.data().loteMp,
+            responsable: doc.data().responsable,
+        }
+        console.log(document);
+        response.push(document);
+        return;
+    })
+
+    return response;
+}
+
 async function validarIdIngreso(coleccion,ingreso){
 
     let status = true;
@@ -398,6 +449,7 @@ module.exports = { getInventarioSemifinalProcesos,
     postInventarioSemifinalProceso, 
     putInventarioSemifinalProceso, 
     getInventarioProductos ,
+    getProductoLoteId,
     getInventarioFinal ,
     postInventarioProductoFinal,
     validateStock,
