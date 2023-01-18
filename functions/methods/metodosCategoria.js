@@ -38,55 +38,6 @@ async function obtenerCategorias(collecion,subcollecion){
     return response;
 };
 
-
-/* async function editarCategoria(collecion,subcollecion,idOld,id,data){
-
-    const queryCategoria = db.collection(collecion).doc(idOld);
-
-    //Verifica si se edito el id de la categoria
-    if(idOld === id){ //si no se edito el id solo se actualiza el nombre e imagen de la categoria
-        queryCategoria.update(data);
-
-    }else{
-
-        const queryProductos = queryCategoria.collection(subcollecion);
-        const resultado = await queryProductos.get();
-        let productos = await resultado.docs.map(doc => ({ //Busca y crea un array con los productos asociados a la categoria que se edito el id
-            id: doc.id,
-            nombre: doc.data().nombre,
-            img: doc.data().img,
-            materiaPrima: doc.data().materiaPrima,
-        }));
-
-
-        await db.collection(collecion).doc(id) //Ingresa una nueva categoria con el id editado
-        .set(data);
-
-        if(productos.length != 0){ //Verifica si hay productos asociados en la anterior categoria
-            query = db.collection(collecion).doc(id).collection(subcollecion); // si encuentra productos los ingresa en la nueva
-            await Promise.all(productos.map(async function(pro){
-                await query.doc(pro.id)
-                .set({
-                    img: pro.img,
-                    nombre: pro.nombre,
-                    materiaPrima: pro.materiaPrima,
-                })
-            }))
-
-            await queryCategoria.collection(subcollecion).listDocuments().then(val => {// Borra los productos asociados de la anterior categoria
-                val.map(doc => {
-                    doc.delete();
-                })
-            })
-
-            await queryCategoria.delete(); //Borra la categoria definitivamente
-        }else{
-            await queryCategoria.delete(); //Borra la categoria definitivamente
-        }
-
-    }
-} */
-
 async function deleteCategoria(collecion, subcollecion,id){
 
     let response;

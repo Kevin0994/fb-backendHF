@@ -53,6 +53,7 @@ router.post('/inventarioProductoFinal/post', checkAuth, async (req, res) => {
             stock: pesoFinal,
         }
         const ingreso = {
+            proceso: n_proceso,
             loteMp: lote_mp,
             fechaEntrada: Timestamp.fromDate(new Date(fechaEntrada)),
             unidades:unidades,
@@ -61,7 +62,7 @@ router.post('/inventarioProductoFinal/post', checkAuth, async (req, res) => {
             conversion: conversion,
             estado: estado,
         }
-        await functionsInventario.postInventarioProductoFinal('inventarioProductoFinal',n_proceso,producto,ingreso);
+        await functionsInventario.postInventarioProductoFinal('inventarioProductoFinal',producto,ingreso);
         return res.status(200).json();
     } catch (error) {
         return res.status(500).send(error);

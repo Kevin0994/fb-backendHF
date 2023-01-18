@@ -168,12 +168,18 @@ router.delete('/alimentos/delete/:id', checkAuth, async (req, res) => {
 });
 
 //Valida si el id del ingreso no se repite
-router.get('/productos/validateId/:tabla/:id', checkAuth, async (req, res) => {
+router.post('/productos/validateId/:tabla', checkAuth, async (req, res) => {
     try {
-        const id = req.params.id;
+        const { productName, loteMes, idProceso  } = req.body;
         const tabla = req.params.tabla;
         let collection;
         let status = true;
+        let document = {
+            productName: productName,
+            loteMes: loteMes,
+            idProceso: idProceso
+        }
+
         if(tabla === 'Semi'){
             collection = 'inventarioProductoSemifinal'
         }
@@ -182,9 +188,9 @@ router.get('/productos/validateId/:tabla/:id', checkAuth, async (req, res) => {
             collection = 'inventarioProductoFinal'
         }
 
-        status = await functionsInventario.validarIdIngreso(collection,id);
+        status = await functionsInventario.validarIdIngreso(collection,document);
 
-        if(!status){
+       if(!status){
             return res.status(200).json(status);
         }
 
@@ -295,8 +301,6 @@ router.post('/inventarioProducto/stock/', checkAuth, async (req, res) => {
         return res.status(500).send(error);
     }
 });
-
-
 
 
 module.exports = router

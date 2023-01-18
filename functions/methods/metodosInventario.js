@@ -175,40 +175,34 @@ async function getProductoLoteId(collection,id){
     return response;
 }
 
-async function validarIdIngreso(coleccion,ingreso){
+async function validarIdIngreso(coleccion,document){
+
+    console.log(document);
 
     let status = true;
-    const idIngreso = ingreso;
-    const query = db.collection(coleccion);
+    const query = db.collection(coleccion).where("nombre", "==", document.productName).where("loteMes", "==", parseInt(document.loteMes));
     const querySnapshot = await query.get();
     const productos = querySnapshot.docs;
-    
 
-    for(let i = 0; i < productos.length; i++) {
-        let queryIngreso = query.doc(productos[i].id).collection('ingresos');
-        let querySnapshot = await queryIngreso.get();
-        let ingresos = querySnapshot.docs;
-
-        for(let n = 0; n < ingresos.length; n++) {
-            if(ingresos[n].id === idIngreso){
-                status = false;
-                n = ingresos.length;
-            }
-        }
-
-        if(!status){
-            i=productos.length;
-        }
+    if (productos.length == 0) {
+        return status;
     }
 
-    console.log(status);
+    let queryIngreso = db.collection(coleccion).doc(productos[0].id).collection('ingresos').where("proceso", "==", parseInt(document.idProceso));
+    let querySnapshotIngreso = await queryIngreso.get();
+    let ingresos = querySnapshotIngreso.docs;
+
+    if (ingresos.length != 0) {
+        status = false;
+        return status;
+    }
 
     return status;
 }
 
 
 
-async function postInventarioSemifinalProceso(coleccion,idIngreso,producto,ingreso){
+async function postInventarioSemifinalProceso(coleccion,producto,ingreso){
 
     const queryInventario = db.collection(coleccion);
     const query = db.collection(coleccion).where("nombre", "==", producto.nombre).where("loteMes", "==", parseInt(producto.loteMes)); //Busca el inventario por nombre y lote 
@@ -216,11 +210,11 @@ async function postInventarioSemifinalProceso(coleccion,idIngreso,producto,ingre
     
     if (inventario.docs.length == 0) { //Si no se encontro ningun inventario se ingresa un nuevo inventario
         await queryInventario.add(producto).then(async function(docRef){
-            await queryInventario.doc(docRef.id).collection('ingresos').doc(idIngreso.toString()).create(ingreso); 
+            await queryInventario.doc(docRef.id).collection('ingresos').doc().create(ingreso); 
             });
     } else {
         let idInventario = inventario.docs.map(data =>({id: data.id}))
-        await queryInventario.doc(idInventario[0].id).collection('ingresos').doc(idIngreso.toString()).create(ingreso);
+        await queryInventario.doc(idInventario[0].id).collection('ingresos').doc().create(ingreso);
     } 
 }
 
@@ -291,7 +285,7 @@ async function getInventarioFinal(coleccion){
 }
 
 
-async function postInventarioProductoFinal(coleccion,idIngreso,producto,ingreso){
+async function postInventarioProductoFinal(coleccion,producto,ingreso){
 
     const queryInventario = db.collection(coleccion);
     const query = db.collection(coleccion).where("nombre", "==", producto.nombre).where("loteMes", "==", parseInt(producto.loteMes)); //Busca el inventario por nombre y lote 
@@ -299,7 +293,7 @@ async function postInventarioProductoFinal(coleccion,idIngreso,producto,ingreso)
  
     if (inventario.docs.length == 0) { //Si no se encontro ningun inventario se ingresa un nuevo inventario
         await queryInventario.add(producto).then(async function(docRef){
-            await queryInventario.doc(docRef.id).collection('ingresos').doc(idIngreso.toString()).create(ingreso); 
+            await queryInventario.doc(docRef.id).collection('ingresos').doc().create(ingreso);
         });
     } else {
        let idInventario = inventario.docs.map(data =>({id: data.id}))
@@ -309,7 +303,7 @@ async function postInventarioProductoFinal(coleccion,idIngreso,producto,ingreso)
         await queryStock.update({
             stock:stockInventario,
         }) 
-        await queryInventario.doc(idInventario[0].id).collection('ingresos').doc(idIngreso.toString()).create(ingreso);
+        await queryInventario.doc(idInventario[0].id).collection('ingresos').doc().create(ingreso);
     }
 
 }

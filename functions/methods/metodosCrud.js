@@ -230,5 +230,5 @@ module.exports = { getNameProductosMP,
     obtenerAlimentos, 
     getAlimentoProductos,
     validarParametroRepetidoCollection,
-    validarParametroRepetidoProducto
+    validarParametroRepetidoProducto,
 };

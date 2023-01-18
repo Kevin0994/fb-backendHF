@@ -69,13 +69,14 @@ router.post('/inventarioProductoSemifinal/post', checkAuth, async (req, res) => 
             stock: 0,
         }
         const ingreso = {
+            proceso: n_proceso,
             loteMp: lote_mp,
             fechaEntrada: Timestamp.fromDate(new Date(fechaEntrada)),
             responsable: responsable,
             estado: estado,
         }
 
-        await functionsInventario.postInventarioSemifinalProceso('inventarioProductoSemifinal',n_proceso,producto,ingreso);
+        await functionsInventario.postInventarioSemifinalProceso('inventarioProductoSemifinal',producto,ingreso);
         return res.status(200).json();
     } catch (error) {
         return res.status(500).send(error);
