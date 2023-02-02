@@ -1,4 +1,4 @@
-const { Router } = require('express')
+const { Router, request } = require('express')
 const router = Router();
 
 const admin = require('firebase-admin')
@@ -205,7 +205,7 @@ async function validarIdIngreso(coleccion,document){
 async function postInventarioSemifinalProceso(coleccion,producto,ingreso){
 
     const queryInventario = db.collection(coleccion);
-    const query = db.collection(coleccion).where("nombre", "==", producto.nombre).where("loteMes", "==", parseInt(producto.loteMes)); //Busca el inventario por nombre y lote 
+    const query = db.collection(coleccion).where("stock", ">", 0).where("nombre", "==", producto.nombre).where("loteMes", "==", parseInt(producto.loteMes)); //Busca el inventario por nombre y lote 
     const inventario = await query.get();
     
     if (inventario.docs.length == 0) { //Si no se encontro ningun inventario se ingresa un nuevo inventario
@@ -288,7 +288,7 @@ async function getInventarioFinal(coleccion){
 async function postInventarioProductoFinal(coleccion,producto,ingreso){
 
     const queryInventario = db.collection(coleccion);
-    const query = db.collection(coleccion).where("nombre", "==", producto.nombre).where("loteMes", "==", parseInt(producto.loteMes)); //Busca el inventario por nombre y lote 
+    const query = db.collection(coleccion).where("stock", ">", 0).where("nombre", "==", producto.nombre).where("loteMes", "==", parseInt(producto.loteMes)); //Busca el inventario por nombre y lote 
     const inventario = await query.get();
  
     if (inventario.docs.length == 0) { //Si no se encontro ningun inventario se ingresa un nuevo inventario
@@ -438,6 +438,33 @@ async function descontarStock(materiaPrima){
     return response;
 }
 
+async function actualizarStock(collection,productoId,peso){
+
+    const docquery = db.collection(collection).doc(productoId);
+    const producto = await docquery.get();
+    let response;
+    let stockProducto = producto.data().stock;
+    if(stockProducto < peso){
+        response = {
+            messege:'No hay stock suficiente',
+            status: false,
+        }
+
+        return response;
+    }
+
+
+    let stockActualizado = stockProducto - peso;
+    await docquery.update({stock:stockActualizado});
+    response = {
+        messege:'Se ha retirado el stock satisfactoriamente',
+        status: true,
+        stock: stockActualizado + ' gr'
+    }
+
+    return response;
+}
+
 module.exports = { getInventarioSemifinalProcesos, 
     validarIdIngreso,
     postInventarioSemifinalProceso, 
@@ -448,4 +475,5 @@ module.exports = { getInventarioSemifinalProcesos,
     postInventarioProductoFinal,
     validateStock,
     descontarStock,
+    actualizarStock,
  };

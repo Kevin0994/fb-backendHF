@@ -106,5 +106,22 @@ router.put('/inventarioProductoSemifinales/put/:id', checkAuth, async (req, res)
     }
 });
 
+router.put('/inventarioProductoSemifinales/put/stock/:id', checkAuth, async (req, res) => {
+    try {
+        const { peso } = req.body;
+        const productoId = req.params.id;
+
+        let response = await functionsInventario.actualizarStock('inventarioProductoSemifinal',productoId,peso);
+
+        if(!response.status){
+            return res.status(500).json(response);
+        }
+
+        return res.status(200).json(response);
+    } catch (error) {
+        return res.status(500).send(error);
+    }
+});
+
 
 module.exports = router
